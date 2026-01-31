@@ -248,7 +248,7 @@ export default function Dashboard() {
               </div>
 
               {/* Quick Actions Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-stagger">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-stagger">
                 {/* Start New Review */}
                 <div
                   className="bg-linear-to-br from-purple-600 to-indigo-600 rounded-xl p-8 text-white shadow-lg hover:shadow-xl transition-shadow cursor-pointer hover-lift hover-glow animate-fade-in-up"
@@ -269,6 +269,30 @@ export default function Dashboard() {
                       fill="currentColor"
                     >
                       <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Advanced Testing */}
+                <div
+                  className="bg-linear-to-br from-blue-600 to-cyan-600 rounded-xl p-8 text-white shadow-lg hover:shadow-xl transition-shadow cursor-pointer hover-lift hover-glow animate-fade-in-up"
+                  onClick={() => navigate("/advanced-testing")}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-2xl font-bold mb-2">
+                        🧪 Advanced Testing
+                      </h3>
+                      <p className="text-blue-100">
+                        Run comprehensive tests with SonarCloud
+                      </p>
+                    </div>
+                    <svg
+                      className="w-12 h-12 opacity-50"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
                 </div>

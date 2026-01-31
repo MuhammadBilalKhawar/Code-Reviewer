@@ -12,6 +12,9 @@ import CommitDetail from "./pages/CommitDetail.jsx";
 import Settings from "./pages/Settings.jsx";
 import ReviewResults from "./pages/ReviewResults.jsx";
 import Documentation from "./pages/Documentation.jsx";
+import TestingResults from "./pages/TestingResults.jsx";
+import AdvancedTesting from "./pages/AdvancedTesting.jsx";
+import AdvancedTestingResults from "./pages/AdvancedTestingResults.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 
@@ -67,6 +70,38 @@ createRoot(document.getElementById("root")).render(
             element={
               <ProtectedRoute>
                 <CommitDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/repos/:owner/:repo/test/:testId"
+            element={
+              <ProtectedRoute>
+                <TestingResults />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/advanced-testing"
+            element={
+              <ProtectedRoute>
+                <AdvancedTesting />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/testing-results/:testId"
+            element={
+              <ProtectedRoute>
+                <TestingResults />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/advanced-testing-results/:owner/:repo/:testId"
+            element={
+              <ProtectedRoute>
+                <AdvancedTestingResults />
               </ProtectedRoute>
             }
           />

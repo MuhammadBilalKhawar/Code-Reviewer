@@ -38,6 +38,19 @@ export default function RepositoryDetail() {
     navigate(`/repos/${owner}/${repo}/commit/${sha}`);
   };
 
+  const runTests = async () => {
+    try {
+      setLoading(true);
+      const res = await api.post("/api/testing", { owner, repo });
+      // Navigate to testing results
+      navigate(`/repos/${owner}/${repo}/test/${res.data.testing._id}`);
+    } catch (err) {
+      console.error("Failed to run tests", err);
+      alert("Failed to run tests. Please try again.");
+      setLoading(false);
+    }
+  };
+
   return (
     <Layout>
       <div
@@ -79,6 +92,24 @@ export default function RepositoryDetail() {
             >
               Review and analyze pull requests & commits
             </p>
+            
+            {/* Run Tests Button */}
+            <button
+              onClick={runTests}
+              disabled={loading}
+              className={`mt-4 px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all ${
+                loading
+                  ? "bg-slate-500 cursor-not-allowed"
+                  : isDark
+                  ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl"
+                  : "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              {loading ? "Running Tests..." : "🧪 Run Full Test Suite"}
+            </button>
           </div>
 
           {loading ? (

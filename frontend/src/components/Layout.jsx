@@ -13,17 +13,11 @@ export default function Layout({ children }) {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `${
-            import.meta.env.VITE_API_URL ||
-            "https://code-review-szuc.onrender.com"
-          }/auth/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const res = await api.get("/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setUser(res.data);
       } catch (err) {
         console.error("Failed to fetch user", err);
@@ -143,6 +137,28 @@ export default function Layout({ children }) {
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
             </svg>
             <span className="font-medium">Repositories</span>
+          </Link>
+
+          <Link
+            to="/advanced-testing"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              isActive("/advanced-testing") || location.pathname.startsWith("/advanced-testing")
+                ? `${
+                    isDark
+                      ? "bg-purple-900/40 text-purple-400"
+                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700"
+                  } border-l-4 border-purple-600`
+                : `${
+                    isDark
+                      ? "text-slate-400 hover:bg-slate-700/50"
+                      : "text-slate-600 hover:bg-slate-100"
+                  }`
+            }`}
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM10 17l-3.5-3.5 1.41-1.41L10 14.17l4.59-4.59L16 11l-6 6z" />
+            </svg>
+            <span className="font-medium">Advanced Testing</span>
           </Link>
 
           <Link

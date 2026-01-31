@@ -28,11 +28,19 @@ export const getPullRequestFiles = async (req, res) => {
 
 export const getCommits = async (req, res) => {
   const { owner, repo } = req.params;
-  const data = await githubApi(
-    req.user.githubAccessToken,
-    `/repos/${owner}/${repo}/commits`
-  );
-  res.json(data);
+  try {
+    const data = await githubApi(
+      req.user.githubAccessToken,
+      `/repos/${owner}/${repo}/commits`
+    );
+    res.json(data);
+  } catch (error) {
+    // Handle empty repository
+    if (error.response?.status === 409) {
+      return res.json([]);
+    }
+    throw error;
+  }
 };
 
 export const getCommitFiles = async (req, res) => {

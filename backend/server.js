@@ -6,6 +6,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import githubRoutes from "./routes/githubRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import testingRoutes from "./routes/testingRoutes.js";
 
 dotenv.config();
 
@@ -57,6 +58,7 @@ app.get("/debug/config", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/api/github", githubRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/testing", testingRoutes);
 
 const PORT = process.env.PORT || 5000;
 
