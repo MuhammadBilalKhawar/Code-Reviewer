@@ -9,6 +9,7 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const [user, setUser] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -58,11 +59,22 @@ export default function Layout({ children }) {
       }`}
     >
       {isDark && <AnimatedBackground />}
+      
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
       <aside
-        className={`relative z-10 w-64 ${
+        className={`fixed lg:relative z-50 w-64 h-full ${
           isDark ? "bg-carbon-50 border-carbon-100" : "bg-white border-slate-200"
-        } border-r flex flex-col shadow-sm transition-colors`}
+        } border-r flex flex-col shadow-sm transition-all duration-300 ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
       >
         {/* Brand */}
         <div
@@ -103,6 +115,7 @@ export default function Layout({ children }) {
         <nav className="flex-1 p-4 space-y-2">
           <Link
             to="/dashboard"
+            onClick={() => setMobileMenuOpen(false)}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               isActive("/dashboard")
                 ? `${
@@ -125,6 +138,7 @@ export default function Layout({ children }) {
 
           <Link
             to="/repositories"
+            onClick={() => setMobileMenuOpen(false)}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               isActive("/repositories")
                 ? `${
@@ -146,6 +160,7 @@ export default function Layout({ children }) {
           </Link>
 
           <Link
+            onClick={() => setMobileMenuOpen(false)}
             to="/advanced-testing"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               isActive("/advanced-testing") || location.pathname.startsWith("/advanced-testing")
@@ -168,6 +183,7 @@ export default function Layout({ children }) {
           </Link>
 
           <Link
+            onClick={() => setMobileMenuOpen(false)}
             to="/documentation"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               isActive("/documentation")
@@ -190,6 +206,7 @@ export default function Layout({ children }) {
           </Link>
 
           <Link
+            onClick={() => setMobileMenuOpen(false)}
             to="/settings"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               isActive("/settings")
@@ -224,7 +241,8 @@ export default function Layout({ children }) {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* MaonClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            in Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header

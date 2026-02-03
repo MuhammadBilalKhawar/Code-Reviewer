@@ -80,15 +80,15 @@ export default function Documentation() {
   return (
     <Layout>
       <div
-        className={`p-8 ${
+        className={`p-4 md:p-8 ${
           isDark ? "bg-carbon" : "bg-slate-50"
         } min-h-screen transition-colors`}
       >
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-12">
+          <div className="mb-8 md:mb-12">
             <h1
-              className={`text-4xl font-bold ${
+              className={`text-3xl md:text-4xl font-bold ${
                 isDark ? "text-neon-text" : "text-slate-900"
               } mb-2`}
             >
@@ -97,13 +97,13 @@ export default function Documentation() {
             <p
               className={`${
                 isDark ? "text-neon-muted" : "text-slate-600"
-              } text-lg`}
+              } text-base md:text-lg`}
             >
               Generate professional documentation for your repositories using AI
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {/* Repositories List */}
             <div className="lg:col-span-1">
               <div

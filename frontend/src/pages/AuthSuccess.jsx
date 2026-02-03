@@ -38,18 +38,18 @@ export default function AuthSuccess() {
 
   return (
     <div className="min-h-screen bg-carbon">
-      <Container className="py-20">
+      <Container className="py-12 md:py-20 px-4">
         <Flex direction="col" align="center" justify="center">
           <Card className="max-w-md w-full">
-            <CardContent className="py-16 text-center">
+            <CardContent className="py-12 md:py-16 text-center px-4">
               <Spinner size="lg" />
-              <h1 className="text-3xl font-bold mt-6" style={{ color: "#E8F1EE" }}>
+              <h1 className="text-2xl md:text-3xl font-bold mt-6" style={{ color: "#E8F1EE" }}>
                 Welcome!
               </h1>
-              <p className="mt-3" style={{ color: "#9DBFB7" }}>
+              <p className="mt-3 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
                 Authenticating your account...
               </p>
-              <p className="text-sm mt-1" style={{ color: "#9DBFB7" }}>
+              <p className="text-xs md:text-sm mt-1" style={{ color: "#9DBFB7" }}>
                 Redirecting to dashboard
               </p>
             </CardContent>

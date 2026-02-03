@@ -145,16 +145,16 @@ export default function TestingResults() {
 
   return (
     <Layout>
-      <Container className="py-12">
-        <Flex justify="between" align="center" className="mb-10">
+      <Container className="py-6 md:py-12 px-4">
+        <Flex justify="between" align="start" className="mb-6 md:mb-10 flex-col sm:flex-row gap-4">
           <div>
             <Button variant="ghost" size="sm" onClick={() => navigate(`/repos/${owner}/${repo}`)}>
               ← Back to Repository
             </Button>
-            <h1 className="text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
+            <h1 className="text-3xl md:text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
               Testing Results
             </h1>
-            <p className="mt-2" style={{ color: "#9DBFB7" }}>
+            <p className="mt-2 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
               {owner}/{repo}
             </p>
           </div>

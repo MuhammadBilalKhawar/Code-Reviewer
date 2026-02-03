@@ -61,13 +61,13 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <Container className="py-12">
+      <Container className="py-6 md:py-12 px-4">
         {/* Welcome Section */}
-        <div className="mb-12 animate-fadeIn">
-          <h1 className="text-5xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
+        <div className="mb-8 md:mb-12 animate-fadeIn">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
             Welcome back, <span style={{ color: '#C47A3A' }}>{user?.login || "Developer"}</span>!
           </h1>
-          <p className="text-lg" style={{ color: '#9DBFB7' }}>
+          <p className="text-base md:text-lg" style={{ color: '#9DBFB7' }}>
             Your code review dashboard and analytics
           </p>
         </div>
@@ -104,9 +104,9 @@ export default function Dashboard() {
         </div>
 
         {/* Action Cards Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6" style={{ color: '#E8F1EE' }}>Quick Actions</h2>
-          <Grid columns={3} gap={4}>
+        <div className="mb-8 md:mb-12">
+          <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6" style={{ color: '#E8F1EE' }}>Quick Actions</h2>
+          <Grid columns={1} gap={4} className="sm:grid-cols-2 lg:grid-cols-3">
             {/* Start New Review */}
             <Card 
               gradient
@@ -118,12 +118,12 @@ export default function Dashboard() {
                 borderColor: 'rgba(196, 122, 58, 0.3)'
               }}
             >
-              <CardContent className="p-8">
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">🔍</div>
-                <h3 className="text-2xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
+              <CardContent className="p-6 md:p-8">
+                <div className="text-4xl md:text-5xl mb-3 md:mb-4 group-hover:scale-110 transition-transform">🔍</div>
+                <h3 className="text-xl md:text-2xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
                   Start New Review
                 </h3>
-                <p style={{ color: '#9DBFB7' }}>
+                <p className="text-sm md:text-base" style={{ color: '#9DBFB7' }}>
                   Browse and analyze your repositories
                 </p>
               </CardContent>
@@ -140,12 +140,12 @@ export default function Dashboard() {
                 borderColor: 'rgba(109, 177, 162, 0.3)'
               }}
             >
-              <CardContent className="p-8">
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">🧪</div>
-                <h3 className="text-2xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
+              <CardContent className="p-6 md:p-8">
+                <div className="text-4xl md:text-5xl mb-3 md:mb-4 group-hover:scale-110 transition-transform">🧪</div>
+                <h3 className="text-xl md:text-2xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
                   Advanced Testing
                 </h3>
-                <p style={{ color: '#9DBFB7' }}>
+                <p className="text-sm md:text-base" style={{ color: '#9DBFB7' }}>
                   Comprehensive tests with SonarCloud
                 </p>
               </CardContent>
@@ -162,12 +162,12 @@ export default function Dashboard() {
                 borderColor: 'rgba(196, 122, 58, 0.3)'
               }}
             >
-              <CardContent className="p-8">
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📦</div>
-                <h3 className="text-2xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
+              <CardContent className="p-6 md:p-8">
+                <div className="text-4xl md:text-5xl mb-3 md:mb-4 group-hover:scale-110 transition-transform">📦</div>
+                <h3 className="text-xl md:text-2xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
                   Your Repositories
                 </h3>
-                <p style={{ color: '#9DBFB7' }}>
+                <p className="text-sm md:text-base" style={{ color: '#9DBFB7' }}>
                   View all your connected repositories
                 </p>
               </CardContent>
@@ -176,9 +176,9 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Summary Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6" style={{ color: '#E8F1EE' }}>Summary Statistics</h2>
-          <Grid columns={3} gap={6}>
+        <div className="mb-8 md:mb-12">
+          <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6" style={{ color: '#E8F1EE' }}>Summary Statistics</h2>
+          <Grid columns={1} gap={4} className="sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
             <MetricCard 
               icon="📈" 
               label="Reviews This Week" 
@@ -201,8 +201,8 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Reviews Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6" style={{ color: '#E8F1EE' }}>Recent Reviews</h2>
+        <div className="mb-8 md:mb-12">
+          <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6" style={{ color: '#E8F1EE' }}>Recent Reviews</h2>
           
           {stats?.recentReviews && stats.recentReviews.length > 0 ? (
             <Card>
@@ -211,13 +211,13 @@ export default function Dashboard() {
                   {stats.recentReviews.map((review, idx) => (
                     <div
                       key={review.id || idx}
-                      className="p-6 hover:bg-opacity-50 transition-all cursor-pointer group"
+                      className="p-4 md:p-6 hover:bg-opacity-50 transition-all cursor-pointer group"
                       style={{ backgroundColor: 'rgba(23, 48, 42, 0.3)' }}
                       onClick={() => navigate(`/reviews/${review.id}`)}
                     >
-                      <Flex justify="between" align="start" gap={4} className="mb-4">
+                      <Flex justify="between" align="start" gap={3} className="mb-3 md:mb-4 flex-col sm:flex-row">
                         <div className="flex-1">
-                          <h3 className="text-lg font-bold group-hover:translate-x-1 transition-transform" style={{ color: '#E8F1EE' }}>
+                          <h3 className="text-base md:text-lg font-bold group-hover:translate-x-1 transition-transform" style={{ color: '#E8F1EE' }}>
                             {review.owner}/{review.repository}
                           </h3>
                           <p className="text-sm mt-1" style={{ color: '#9DBFB7' }}>
@@ -237,7 +237,7 @@ export default function Dashboard() {
                         </Badge>
                       </Flex>
                       
-                      <Flex gap={6} className="text-sm">
+                      <Flex gap={4} className="text-xs md:text-sm flex-wrap">
                         <span style={{ color: '#9DBFB7' }}>
                           📋 {review.issueCount} issue{review.issueCount !== 1 ? "s" : ""} found
                         </span>
@@ -252,12 +252,12 @@ export default function Dashboard() {
             </Card>
           ) : (
             <Card>
-              <CardContent className="py-16 text-center">
-                <div className="text-6xl mb-4">📋</div>
-                <h3 className="text-xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
+              <CardContent className="py-12 md:py-16 text-center px-4">
+                <div className="text-5xl md:text-6xl mb-4">📋</div>
+                <h3 className="text-lg md:text-xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
                   No Recent Reviews
                 </h3>
-                <p className="mb-6" style={{ color: '#9DBFB7' }}>
+                <p className="mb-6 text-sm md:text-base" style={{ color: '#9DBFB7' }}>
                   Start by analyzing a repository to see reviews here
                 </p>
                 <Button 
@@ -273,8 +273,8 @@ export default function Dashboard() {
 
         {/* Advanced Testing History */}
         <div>
-          <Flex justify="between" align="center" className="mb-6">
-            <h2 className="text-2xl font-bold" style={{ color: '#E8F1EE' }}>
+          <Flex justify="between" align="center" className="mb-4 md:mb-6 flex-col sm:flex-row gap-3">
+            <h2 className="text-xl md:text-2xl font-bold" style={{ color: '#E8F1EE' }}>
               Advanced Testing History
             </h2>
             <Button 
@@ -293,13 +293,13 @@ export default function Dashboard() {
                   {testHistory.slice(0, 5).map((test, idx) => (
                     <div
                       key={test._id || idx}
-                      className="p-6 hover:bg-opacity-50 transition-all cursor-pointer group"
+                      className="p-4 md:p-6 hover:bg-opacity-50 transition-all cursor-pointer group"
                       style={{ backgroundColor: 'rgba(23, 48, 42, 0.3)' }}
                       onClick={() => navigate(`/advanced-testing-results/${test.owner}/${test.repo}/${test._id}`)}
                     >
-                      <Flex justify="between" align="start" gap={4} className="mb-4">
+                      <Flex justify="between" align="start" gap={3} className="mb-3 md:mb-4 flex-col sm:flex-row">
                         <div className="flex-1">
-                          <h3 className="text-lg font-bold group-hover:translate-x-1 transition-transform" style={{ color: '#E8F1EE' }}>
+                          <h3 className="text-base md:text-lg font-bold group-hover:translate-x-1 transition-transform" style={{ color: '#E8F1EE' }}>
                             {test.owner}/{test.repo}
                           </h3>
                           <p className="text-sm mt-1" style={{ color: '#9DBFB7' }}>
@@ -317,7 +317,7 @@ export default function Dashboard() {
                         </Badge>
                       </Flex>
                       
-                      <Flex gap={6} className="text-sm">
+                      <Flex gap={4} className="text-xs md:text-sm flex-wrap">
                         {test.results && test.results.score !== undefined && (
                           <span style={{ color: '#9DBFB7' }}>
                             📊 Score: {test.results.score}%
@@ -339,12 +339,12 @@ export default function Dashboard() {
             </Card>
           ) : (
             <Card>
-              <CardContent className="py-16 text-center">
-                <div className="text-6xl mb-4">🧪</div>
-                <h3 className="text-xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
+              <CardContent className="py-12 md:py-16 text-center px-4">
+                <div className="text-5xl md:text-6xl mb-4">🧪</div>
+                <h3 className="text-lg md:text-xl font-bold mb-2" style={{ color: '#E8F1EE' }}>
                   No Advanced Tests Yet
                 </h3>
-                <p className="mb-6" style={{ color: '#9DBFB7' }}>
+                <p className="mb-6 text-sm md:text-base" style={{ color: '#9DBFB7' }}>
                   Run AI-powered tests to see results here
                 </p>
                 <Button 

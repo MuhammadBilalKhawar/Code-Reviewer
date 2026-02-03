@@ -236,20 +236,20 @@ export default function AdvancedTestingResults() {
 
   return (
     <Layout>
-      <Container className="py-12">
-        <Flex justify="between" align="center" className="mb-10">
+      <Container className="py-6 md:py-12 px-4">
+        <Flex justify="between" align="start" className="mb-6 md:mb-10 flex-col sm:flex-row gap-4">
           <div>
             <Button variant="ghost" size="sm" onClick={() => navigate("/advanced-testing")}>
               ← Back to Testing
             </Button>
-            <h1 className="text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
+            <h1 className="text-3xl md:text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
               Test Results
             </h1>
-            <p className="mt-2" style={{ color: "#9DBFB7" }}>
+            <p className="mt-2 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
               {owner}/{repo} • {allTestResults.length} test{allTestResults.length !== 1 ? 's' : ''} completed
             </p>
           </div>
-          <Badge variant="success">{allTestResults.length} Tests</Badge>
+          <Badge variant="success" className="self-start sm:self-auto">{allTestResults.length} Tests</Badge>
         </Flex>
 
         {loading ? (
@@ -264,26 +264,26 @@ export default function AdvancedTestingResults() {
         ) : (
           <>
             {/* Summary Cards */}
-            <Grid columns={allTestResults.length > 2 ? 4 : allTestResults.length} gap={4} className="mb-10">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-10">
               {allTestResults.map((testing, idx) => (
                 <Card key={testing._id || idx}>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 md:p-4">
                     <Badge 
                       variant={testing.status === 'COMPLETED' ? 'success' : testing.status === 'ERROR' ? 'error' : 'default'}
-                      className="mb-2"
+                      className="mb-2 text-xs"
                     >
                       {testing.testType?.replace('dynamic-', '') || 'Test'}
                     </Badge>
-                    <p className="text-3xl font-bold" style={{ color: "#E8F1EE" }}>
+                    <p className="text-2xl md:text-3xl font-bold" style={{ color: "#E8F1EE" }}>
                       {testing.overallScore || 0}%
                     </p>
-                    <p className="text-sm" style={{ color: "#9DBFB7" }}>
+                    <p className="text-xs md:text-sm" style={{ color: "#9DBFB7" }}>
                       Grade: {testing.grade || 'N/A'}
                     </p>
                   </CardContent>
                 </Card>
               ))}
-            </Grid>
+            </div>
 
             {/* All Test Results */}
             {allTestResults.map((testing, testIndex) => {
@@ -291,21 +291,21 @@ export default function AdvancedTestingResults() {
               const resultEntries = Object.entries(results || {});
               
               return (
-                <div key={testing._id || testIndex} className="mb-12">
+                <div key={testing._id || testIndex} className="mb-8 md:mb-12">
                   {/* Test Header */}
-                  <Card className="mb-6 bg-gradient-to-r from-copper/10 to-emerald/10">
-                    <CardContent className="p-6">
-                      <Flex justify="between" align="center">
-                        <div>
-                          <h2 className="text-2xl font-bold mb-2" style={{ color: "#E8F1EE" }}>
+                  <Card className="mb-4 md:mb-6 bg-gradient-to-r from-copper/10 to-emerald/10">
+                    <CardContent className="p-4 md:p-6">
+                      <Flex justify="between" align="start" className="flex-col sm:flex-row gap-3">
+                        <div className="flex-1">
+                          <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: "#E8F1EE" }}>
                             {testing.testType?.replace('dynamic-', '').toUpperCase() || 'Test'} Results
                           </h2>
-                          <p className="text-sm" style={{ color: "#9DBFB7" }}>
+                          <p className="text-xs md:text-sm" style={{ color: "#9DBFB7" }}>
                             Completed: {new Date(testing.createdAt || Date.now()).toLocaleString()}
                           </p>
                         </div>
                         <div className="text-right">
-                          <div className="text-4xl font-bold" style={{ color: "#C47A3A" }}>
+                          <div className="text-2xl md:text-4xl font-bold" style={{ color: "#C47A3A" }}>
                             {testing.overallScore || 0}%
                           </div>
                           <Badge variant={testing.grade === 'A+' || testing.grade === 'A' ? 'success' : testing.grade === 'F' ? 'error' : 'warning'}>
@@ -319,18 +319,18 @@ export default function AdvancedTestingResults() {
                   {/* Test Details */}
                   {resultEntries.length === 0 ? (
                     <Card>
-                      <CardContent className="py-16 text-center">
-                        <div className="text-5xl mb-4">📊</div>
-                        <h3 className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+                      <CardContent className="py-12 md:py-16 text-center px-4">
+                        <div className="text-4xl md:text-5xl mb-4">📊</div>
+                        <h3 className="text-lg md:text-xl font-bold" style={{ color: "#E8F1EE" }}>
                           No detailed results available
                         </h3>
-                        <p className="mt-2" style={{ color: "#9DBFB7" }}>
+                        <p className="mt-2 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
                           The test completed but did not return detailed data.
                         </p>
                       </CardContent>
                     </Card>
                   ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                       {resultEntries.map(([key, section]) => {
                         const normalizedSection = normalizeSection(section);
                         const issues = extractIssues(normalizedSection);
@@ -339,15 +339,15 @@ export default function AdvancedTestingResults() {
                   if (key.startsWith("dynamic-")) {
                     return (
                       <Card key={key} className="bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 border border-emerald-400/30">
-                        <CardContent className="p-6">
-                          <Flex justify="between" align="center" className="mb-4">
-                            <h3 className="text-2xl font-bold flex items-center gap-2" style={{ color: "#E8F1EE" }}>
-                              <span className="text-3xl">🤖</span>
+                        <CardContent className="p-4 md:p-6">
+                          <Flex justify="between" align="start" className="mb-4 flex-col sm:flex-row gap-3">
+                            <h3 className="text-xl md:text-2xl font-bold flex items-center gap-2" style={{ color: "#E8F1EE" }}>
+                              <span className="text-2xl md:text-3xl">🤖</span>
                               {key.toUpperCase().replace("DYNAMIC-", "")} - AI ANALYSIS
                             </h3>
                             {normalizedSection?.score !== undefined && (
                               <div className="flex items-center gap-2">
-                                <Badge variant="info" className="text-lg px-4 py-2">
+                                <Badge variant="info" className="text-base md:text-lg px-3 py-1 md:px-4 md:py-2">
                                   Score: {normalizedSection.score}
                                 </Badge>
                                 <Badge variant={normalizedSection.grade === "A+" || normalizedSection.grade === "A" ? "success" : normalizedSection.grade === "F" ? "error" : "warning"} className="text-lg px-4 py-2">
@@ -403,15 +403,15 @@ export default function AdvancedTestingResults() {
                               </details>
                               
                               {normalizedSection.canCommit && (
-                                <div className="mb-4 p-4 rounded-lg" style={{ background: commitSuccess[key] ? "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%)" : "linear-gradient(135deg, rgba(109, 177, 162, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%)", border: commitSuccess[key] ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(109, 177, 162, 0.3)" }}>
+                                <div className="mb-4 p-3 md:p-4 rounded-lg" style={{ background: commitSuccess[key] ? "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%)" : "linear-gradient(135deg, rgba(109, 177, 162, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%)", border: commitSuccess[key] ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(109, 177, 162, 0.3)" }}>
                                   <Flex direction="column" gap="3">
-                                    <Flex align="center" gap="2">
-                                      <span style={{ fontSize: "1.5rem" }}>{commitSuccess[key] ? "✅" : "🚀"}</span>
-                                      <div>
-                                        <p className="font-semibold" style={{ color: commitSuccess[key] ? "#10B981" : "#6DB1A2" }}>
+                                    <Flex align="start" gap="2" className="flex-col sm:flex-row">
+                                      <span style={{ fontSize: "1.25rem", marginTop: "0.25rem" }} className="md:text-2xl">{commitSuccess[key] ? "✅" : "🚀"}</span>
+                                      <div className="flex-1">
+                                        <p className="font-semibold text-sm md:text-base" style={{ color: commitSuccess[key] ? "#10B981" : "#6DB1A2" }}>
                                           {commitSuccess[key] ? "Workflow Committed!" : "Ready to Deploy"}
                                         </p>
-                                        <p className="text-xs" style={{ color: "#9DBFB7" }}>
+                                        <p className="text-xs md:text-sm" style={{ color: "#9DBFB7" }}>
                                           {commitSuccess[key] 
                                             ? "Workflow successfully added to your repository" 
                                             : "Commit this workflow to your repository for automated testing"}
@@ -422,12 +422,13 @@ export default function AdvancedTestingResults() {
                                       <Button
                                         onClick={() => handleCommitWorkflow(key, normalizedSection)}
                                         disabled={setupLoading[key]}
+                                        className="w-full sm:w-auto text-sm md:text-base"
                                         style={{
                                           background: "linear-gradient(135deg, #6DB1A2 0%, #8B5CF6 100%)",
                                           border: "none",
                                           color: "white",
                                           fontWeight: "600",
-                                          padding: "0.75rem 1.5rem",
+                                          padding: "0.65rem 1.25rem",
                                           borderRadius: "0.5rem",
                                           cursor: setupLoading[key] ? "wait" : "pointer",
                                           opacity: setupLoading[key] ? 0.7 : 1,
@@ -437,7 +438,7 @@ export default function AdvancedTestingResults() {
                                         {setupLoading[key] ? (
                                           <>
                                             <Spinner size="sm" style={{ marginRight: "0.5rem" }} />
-                                            Committing to GitHub...
+                                            Committing...
                                           </>
                                         ) : (
                                           <>📤 Commit Workflow to GitHub</>
@@ -500,26 +501,26 @@ export default function AdvancedTestingResults() {
                   if (normalizedSection.status === "NOT_ENABLED" || normalizedSection.status === "NOT_ANALYZED" || (normalizedSection.status === "ERROR" && normalizedSection.setupInstructions)) {
                     return (
                       <Card key={key} className="bg-carbon-50/70 border border-amber-500/30">
-                        <CardContent className="p-6">
-                          <Flex justify="between" align="center" className="mb-4">
-                            <h3 className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+                        <CardContent className="p-4 md:p-6">
+                          <Flex justify="between" align="start" className="mb-4 flex-col sm:flex-row gap-2">
+                            <h3 className="text-lg md:text-xl font-bold" style={{ color: "#E8F1EE" }}>
                               {key.toUpperCase()}
                             </h3>
                             <Badge variant="warning">Setup Required</Badge>
                           </Flex>
                           
                           <div className="mb-4">
-                            <p className="text-sm mb-2" style={{ color: "#C7E2DC" }}>
+                            <p className="text-xs md:text-sm mb-2" style={{ color: "#C7E2DC" }}>
                               {normalizedSection.message || "This service needs to be configured."}
                             </p>
                           </div>
 
                           {normalizedSection.setupInstructions && (
-                            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: "rgba(196, 122, 58, 0.1)", borderLeft: "3px solid #C47A3A" }}>
-                              <p className="text-sm font-semibold mb-2" style={{ color: "#C47A3A" }}>
+                            <div className="mb-4 p-3 md:p-4 rounded-lg" style={{ backgroundColor: "rgba(196, 122, 58, 0.1)", borderLeft: "3px solid #C47A3A" }}>
+                              <p className="text-xs md:text-sm font-semibold mb-2" style={{ color: "#C47A3A" }}>
                                 Setup Instructions:
                               </p>
-                              <ol className="list-decimal list-inside space-y-1 text-sm" style={{ color: "#E8F1EE" }}>
+                              <ol className="list-decimal list-inside space-y-1 text-xs md:text-sm" style={{ color: "#E8F1EE" }}>
                                 {normalizedSection.setupInstructions.map((instruction, idx) => (
                                   <li key={idx}>{instruction}</li>
                                 ))}
@@ -567,9 +568,9 @@ export default function AdvancedTestingResults() {
                   
                   return (
                     <Card key={key} className="bg-carbon-50/70 border border-emerald-200/20">
-                      <CardContent className="p-6">
-                        <Flex justify="between" align="center" className="mb-4">
-                          <h3 className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+                      <CardContent className="p-4 md:p-6">
+                        <Flex justify="between" align="start" className="mb-4 flex-col sm:flex-row gap-2">
+                          <h3 className="text-lg md:text-xl font-bold" style={{ color: "#E8F1EE" }}>
                             {key.toUpperCase()}
                           </h3>
                           {normalizedSection?.error ? (
@@ -584,24 +585,24 @@ export default function AdvancedTestingResults() {
                         </Flex>
 
                         {normalizedSection?.error && (
-                          <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", borderLeft: "3px solid #EF4444" }}>
-                            <p className="text-sm font-semibold mb-1" style={{ color: "#EF4444" }}>
+                          <div className="mb-4 p-3 md:p-4 rounded-lg" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", borderLeft: "3px solid #EF4444" }}>
+                            <p className="text-xs md:text-sm font-semibold mb-1" style={{ color: "#EF4444" }}>
                               Test Error
                             </p>
-                            <p className="text-sm" style={{ color: "#E8F1EE" }}>
+                            <p className="text-xs md:text-sm" style={{ color: "#E8F1EE" }}>
                               {normalizedSection.error}
                             </p>
                           </div>
                         )}
 
                         {normalizedSection?.summary && (
-                          <p className="text-sm mb-4" style={{ color: "#C7E2DC" }}>
+                          <p className="text-xs md:text-sm mb-4" style={{ color: "#C7E2DC" }}>
                             {formatText(normalizedSection.summary)}
                           </p>
                         )}
 
                         <div className="mb-5">
-                          <p className="text-sm font-semibold mb-3" style={{ color: "#E8F1EE" }}>
+                          <p className="text-xs md:text-sm font-semibold mb-3" style={{ color: "#E8F1EE" }}>
                             Issues
                           </p>
                           {renderIssues(issues)}
@@ -609,7 +610,7 @@ export default function AdvancedTestingResults() {
 
                         {normalizedSection?.metrics && (
                           <div>
-                            <p className="text-sm font-semibold mb-3" style={{ color: "#E8F1EE" }}>
+                            <p className="text-xs md:text-sm font-semibold mb-3" style={{ color: "#E8F1EE" }}>
                               Metrics
                             </p>
                             {renderMetrics(normalizedSection.metrics)}

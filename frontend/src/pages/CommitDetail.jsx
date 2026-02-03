@@ -61,20 +61,20 @@ export default function CommitDetail() {
 
   return (
     <Layout>
-      <Container className="py-12">
-        <Flex justify="between" align="center" className="mb-10">
+      <Container className="py-6 md:py-12 px-4">
+        <Flex justify="between" align="start" className="mb-6 md:mb-10 flex-col sm:flex-row gap-4">
           <div>
             <Button variant="ghost" size="sm" onClick={() => navigate(`/repos/${owner}/${repo}`)}>
               ← Back
             </Button>
-            <h1 className="text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
+            <h1 className="text-3xl md:text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
               Commit {sha.substring(0, 7)}
             </h1>
-            <p className="mt-2" style={{ color: "#9DBFB7" }}>
+            <p className="mt-2 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
               {owner}/{repo}
             </p>
           </div>
-          <Button onClick={runAiReview} disabled={reviewLoading}>
+          <Button size="sm" className="w-full sm:w-auto" onClick={runAiReview} disabled={reviewLoading}>
             {reviewLoading ? "Analyzing..." : "Run AI Review"}
           </Button>
         </Flex>
@@ -90,11 +90,11 @@ export default function CommitDetail() {
           </div>
         ) : (
           <>
-            <Grid columns={3} gap={6} className="mb-10">
+            <Grid columns={1} gap={4} className="mb-6 md:mb-10 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
               <Card>
-                <CardContent className="p-6">
-                  <p className="text-sm" style={{ color: "#9DBFB7" }}>Files Changed</p>
-                  <p className="text-4xl font-bold" style={{ color: "#E8F1EE" }}>{files.length}</p>
+                <CardContent className="p-4 md:p-6">
+                  <p className="text-xs md:text-sm" style={{ color: "#9DBFB7" }}>Files Changed</p>
+                  <p className="text-3xl md:text-4xl font-bold" style={{ color: "#E8F1EE" }}>{files.length}</p>
                 </CardContent>
               </Card>
               <Card>

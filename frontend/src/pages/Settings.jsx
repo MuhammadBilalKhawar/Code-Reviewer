@@ -50,40 +50,40 @@ export default function Settings() {
 
   return (
     <Layout>
-      <Container className="py-12">
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold" style={{ color: "#E8F1EE" }}>
+      <Container className="py-6 md:py-12 px-4">
+        <div className="mb-6 md:mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold" style={{ color: "#E8F1EE" }}>
             Settings
           </h1>
-          <p className="mt-2" style={{ color: "#9DBFB7" }}>
+          <p className="mt-2 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
             Configure your preferences and account
           </p>
         </div>
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
           <Card>
-            <CardContent className="p-8">
-              <Flex justify="between" align="center" className="mb-6">
-                <h2 className="text-2xl font-bold" style={{ color: "#E8F1EE" }}>
+            <CardContent className="p-5 md:p-8">
+              <Flex justify="between" align="center" className="mb-4 md:mb-6 flex-col sm:flex-row gap-3">
+                <h2 className="text-xl md:text-2xl font-bold" style={{ color: "#E8F1EE" }}>
                   Profile
                 </h2>
-                <Button variant="secondary">Edit Profile</Button>
+                <Button variant="secondary" size="sm">Edit Profile</Button>
               </Flex>
-              <Flex gap={6} align="center">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-carbon-100 flex items-center justify-center">
+              <Flex gap={4} align="center" className="flex-col sm:flex-row md:gap-6">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-carbon-100 flex items-center justify-center flex-shrink-0">
                   {user?.avatar ? (
                     <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-2xl font-bold" style={{ color: "#E8F1EE" }}>
+                    <span className="text-xl md:text-2xl font-bold" style={{ color: "#E8F1EE" }}>
                       {user?.name?.charAt(0) || "U"}
                     </span>
                   )}
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+                <div className="text-center sm:text-left">
+                  <h3 className="text-lg md:text-xl font-bold" style={{ color: "#E8F1EE" }}>
                     {user?.name || "User"}
                   </h3>
-                  <p style={{ color: "#9DBFB7" }}>{user?.email || "No email"}</p>
-                  <p className="text-sm mt-1" style={{ color: "#9DBFB7" }}>
+                  <p className="text-sm md:text-base" style={{ color: "#9DBFB7" }}>{user?.email || "No email"}</p>
+                  <p className="text-xs md:text-sm mt-1" style={{ color: "#9DBFB7" }}>
                     Joined {new Date(user?.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long" })}
                   </p>
                 </div>

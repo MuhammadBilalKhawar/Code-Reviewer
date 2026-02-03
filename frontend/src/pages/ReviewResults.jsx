@@ -68,16 +68,16 @@ export default function ReviewResults() {
 
   return (
     <Layout>
-      <Container className="py-12">
-        <Flex justify="between" align="center" className="mb-10">
+      <Container className="py-6 md:py-12 px-4">
+        <Flex justify="between" align="start" className="mb-6 md:mb-10 flex-col sm:flex-row gap-4">
           <div>
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               ← Back
             </Button>
-            <h1 className="text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
+            <h1 className="text-3xl md:text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
               Review Results
             </h1>
-            <p className="mt-2" style={{ color: "#9DBFB7" }}>
+            <p className="mt-2 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
               AI analysis for {review?.repository || "repository"}
             </p>
           </div>
@@ -95,9 +95,9 @@ export default function ReviewResults() {
           </Flex>
         ) : (
           <>
-            <Card gradient hoverable className="mb-10">
-              <CardContent className="p-8">
-                <Flex justify="between" align="center" className="mb-6">
+            <Card gradient hoverable className="mb-6 md:mb-10">
+              <CardContent className="p-5 md:p-8">
+                <Flex justify="between" align="start" className="mb-4 md:mb-6 flex-col sm:flex-row gap-3">
                   <h2 className="text-2xl font-bold" style={{ color: "#E8F1EE" }}>
                     Summary
                   </h2>

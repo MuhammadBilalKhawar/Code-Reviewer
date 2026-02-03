@@ -46,17 +46,17 @@ export default function Repositories() {
 
   return (
     <Layout>
-      <Container className="py-12">
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold" style={{ color: "#E8F1EE" }}>
+      <Container className="py-6 md:py-12 px-4">
+        <div className="mb-6 md:mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold" style={{ color: "#E8F1EE" }}>
             Repositories
           </h1>
-          <p className="mt-2" style={{ color: "#9DBFB7" }}>
+          <p className="mt-2 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
             Connect and analyze your GitHub repositories
           </p>
         </div>
 
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <Input
             label="Search repositories"
             placeholder="Search by name..."
@@ -73,7 +73,7 @@ export default function Repositories() {
             </p>
           </div>
         ) : filteredRepos.length > 0 ? (
-          <Grid columns={3} gap={6}>
+          <Grid columns={1} gap={4} className="sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
             {filteredRepos.map((repo) => (
               <Card
                 key={repo.id}
@@ -81,24 +81,24 @@ export default function Repositories() {
                 className="cursor-pointer border border-emerald-200/30 bg-carbon-100/90 shadow-[0_12px_32px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200/60 hover:shadow-[0_16px_40px_rgba(13,255,178,0.14)]"
                 onClick={() => navigate(`/repos/${repo.owner.login}/${repo.name}`)}
               >
-                <CardContent className="p-7 space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-xl font-semibold" style={{ color: "#F5FFFB" }}>
+                <CardContent className="p-5 md:p-7 space-y-3 md:space-y-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg md:text-xl font-semibold truncate" style={{ color: "#F5FFFB" }}>
                         {repo.name}
                       </h3>
-                      <p className="text-sm font-medium" style={{ color: "#B8D9D2" }}>
+                      <p className="text-xs md:text-sm font-medium" style={{ color: "#B8D9D2" }}>
                         {repo.owner?.login}
                       </p>
                     </div>
-                    <Badge variant="secondary" className="text-sm font-semibold">★ {repo.stargazers_count}</Badge>
+                    <Badge variant="secondary" className="text-xs md:text-sm font-semibold flex-shrink-0">★ {repo.stargazers_count}</Badge>
                   </div>
 
-                  <p className="text-sm leading-relaxed min-h-[44px]" style={{ color: "#C7E2DC" }}>
+                  <p className="text-xs md:text-sm leading-relaxed min-h-[40px] md:min-h-[44px] line-clamp-2" style={{ color: "#C7E2DC" }}>
                     {repo.description || "No description provided"}
                   </p>
 
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs md:text-sm flex-wrap gap-2">
                     {repo.language ? (
                       <Badge variant="outline" className="text-xs font-semibold">{repo.language}</Badge>
                     ) : (
@@ -114,12 +114,12 @@ export default function Repositories() {
           </Grid>
         ) : (
           <Card>
-            <CardContent className="py-16 text-center">
-              <div className="text-5xl mb-4">📦</div>
-              <h3 className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+            <CardContent className="py-12 md:py-16 text-center px-4">
+              <div className="text-4xl md:text-5xl mb-4">📦</div>
+              <h3 className="text-lg md:text-xl font-bold" style={{ color: "#E8F1EE" }}>
                 No repositories found
               </h3>
-              <p className="mt-2" style={{ color: "#9DBFB7" }}>
+              <p className="mt-2 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
                 Try a different search term
               </p>
             </CardContent>

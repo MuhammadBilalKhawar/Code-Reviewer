@@ -181,21 +181,22 @@ export default function AdvancedTesting() {
 
   return (
     <Layout>
-      <Container className="py-12">
-        <Flex justify="between" align="center" className="mb-10">
+      <Container className="py-6 md:py-12 px-4">
+        <Flex justify="between" align="start" className="mb-6 md:mb-10 flex-col sm:flex-row gap-4">
           <div>
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               ← Back
             </Button>
-            <h1 className="text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
+            <h1 className="text-3xl md:text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
               Advanced Testing
             </h1>
-            <p className="mt-2" style={{ color: "#9DBFB7" }}>
+            <p className="mt-2 text-sm md:text-base" style={{ color: "#9DBFB7" }}>
               Select a repository and run targeted quality checks
             </p>
           </div>
           <Button
             variant="accent"
+            className="w-full sm:w-auto"
             onClick={handleRunTests}
             disabled={testRunning || !selectedRepo || selectedTests.length === 0}
           >
@@ -207,11 +208,11 @@ export default function AdvancedTesting() {
         </Flex>
 
         {/* Repository Selection and Test Options */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-6 md:mb-8">
           {/* Repository Selection */}
           <Card>
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold mb-4" style={{ color: "#E8F1EE" }}>
+            <CardContent className="p-5 md:p-6">
+              <h2 className="text-lg md:text-xl font-bold mb-4" style={{ color: "#E8F1EE" }}>
                 Repository Selection
               </h2>
               <Select
@@ -228,16 +229,16 @@ export default function AdvancedTesting() {
 
           {/* Test Selection */}
           <Card>
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold mb-4" style={{ color: "#E8F1EE" }}>
+            <CardContent className="p-5 md:p-6">
+              <h2 className="text-lg md:text-xl font-bold mb-4" style={{ color: "#E8F1EE" }}>
                 Testing Options
               </h2>
-              <p className="text-sm mb-4" style={{ color: "#C47A3A" }}>
+              <p className="text-xs md:text-sm mb-4" style={{ color: "#C47A3A" }}>
                 Select tests to run (AI-powered analysis)
               </p>
-              <div className="space-y-3 max-h-80 overflow-y-auto">
+              <div className="space-y-3 max-h-60 md:max-h-80 overflow-y-auto">
                 {tests.map((test) => (
-                  <label key={test.id} className="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+                  <label key={test.id} className="flex items-start gap-2 md:gap-3 cursor-pointer p-2 md:p-3 rounded-lg hover:bg-white/5 transition-colors">
                     <input
                       type="checkbox"
                       checked={selectedTests.includes(test.id)}
@@ -245,14 +246,14 @@ export default function AdvancedTesting() {
                       className="mt-1 accent-copper"
                     />
                     <div className="flex-1">
-                      <span className="block font-semibold" style={{ color: "#E8F1EE" }}>{test.name}</span>
+                      <span className="block font-semibold text-sm md:text-base" style={{ color: "#E8F1EE" }}>{test.name}</span>
                       {test.description && (
-                        <span className="block text-sm mt-1" style={{ color: "#9DBFB7" }}>{test.description}</span>
+                        <span className="block text-xs md:text-sm mt-1" style={{ color: "#9DBFB7" }}>{test.description}</span>
                       )}
                       {test.features && test.features.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
+                        <div className="mt-2 flex flex-wrap gap-1 md:gap-2">
                           {test.features.map((feature, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
+                            <Badge key={idx} variant="secondary" className="text-[10px] md:text-xs">
                               {feature}
                             </Badge>
                           ))}
@@ -268,9 +269,9 @@ export default function AdvancedTesting() {
 
         {/* Test History */}
         <Card>
-          <CardContent className="p-6">
-            <Flex justify="between" align="center" className="mb-6">
-              <h2 className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+          <CardContent className="p-5 md:p-6">
+            <Flex justify="between" align="center" className="mb-4 md:mb-6">
+              <h2 className="text-lg md:text-xl font-bold" style={{ color: "#E8F1EE" }}>
                 Recent Test History
               </h2>
             </Flex>
@@ -284,26 +285,27 @@ export default function AdvancedTesting() {
                 <div className="space-y-3">
                   {(showAllHistory ? testHistory : testHistory.slice(0, 3)).map((test) => (
                     <Card key={test._id || test.id} className="border border-copper/15">
-                      <CardContent className="p-4">
-                        <Flex justify="between" align="center">
-                          <div>
-                            <p className="font-semibold" style={{ color: "#E8F1EE" }}>
+                      <CardContent className="p-3 md:p-4">
+                        <Flex justify="between" align="start" className="flex-col sm:flex-row gap-3">
+                          <div className="flex-1">
+                            <p className="font-semibold text-sm md:text-base" style={{ color: "#E8F1EE" }}>
                               {test.owner}/{test.repo}
                             </p>
-                            <Flex gap={2} align="center" className="mt-1">
+                            <Flex gap={2} align="center" className="mt-1 flex-wrap">
                               <Badge variant={test.status === 'COMPLETED' ? 'success' : test.status === 'ERROR' ? 'danger' : 'default'}>
                                 {test.status || 'COMPLETED'}
                               </Badge>
-                              <span className="text-sm" style={{ color: "#9DBFB7" }}>
+                              <span className="text-xs md:text-sm" style={{ color: "#9DBFB7" }}>
                                 {test.testType || 'Unknown Test'}
                               </span>
-                              <span className="text-sm" style={{ color: "#9DBFB7" }}>
+                              <span className="text-xs md:text-sm" style={{ color: "#9DBFB7" }}>
                                 • {new Date(test.createdAt || test.timestamp || Date.now()).toLocaleString()}
                               </span>
                             </Flex>
                           </div>
                           <Button
                             size="sm"
+                            className="w-full sm:w-auto"
                             onClick={() => navigate(`/advanced-testing-results/${test.owner}/${test.repo}/${test._id}`)}
                           >
                             View Results
