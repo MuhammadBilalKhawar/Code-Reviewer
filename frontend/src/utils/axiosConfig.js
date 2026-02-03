@@ -1,9 +1,10 @@
 import axios from "axios";
 
 // Configure axios defaults
-const apiUrl = import.meta.env.VITE_API_URL || "https://code-review-szuc.onrender.com";
+// Priority: Environment variable > Fallback to localhost for development
+const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 console.log("🔧 Axios Config - API URL:", apiUrl);
-console.log("🔧 Environment Variables:", import.meta.env);
+console.log("🔧 Environment:", import.meta.env.MODE);
 
 const api = axios.create({
   baseURL: apiUrl,
