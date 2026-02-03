@@ -40,21 +40,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.get("/", (req, res) => res.send("AI Code Review SaaS Backend Running"));
 
-// Debug: Log environment variables on startup
-app.get("/debug/config", (req, res) => {
-  res.json({
-    CLIENT_URL: process.env.CLIENT_URL,
-    SERVER_URL: process.env.SERVER_URL,
-    PORT: process.env.PORT,
-    GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID ? "✓ Set" : "✗ Missing",
-    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET
-      ? "✓ Set"
-      : "✗ Missing",
-    JWT_SECRET: process.env.JWT_SECRET ? "✓ Set" : "✗ Missing",
-    MONGO_URI: process.env.MONGO_URI ? "✓ Set" : "✗ Missing",
-  });
-});
-
+// Routes
 app.use("/auth", authRoutes);
 app.use("/api/github", githubRoutes);
 app.use("/api/reviews", reviewRoutes);

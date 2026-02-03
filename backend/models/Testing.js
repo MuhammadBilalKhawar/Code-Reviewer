@@ -27,6 +27,11 @@ const TestingSchema = new mongoose.Schema(
       type: String,
       default: "custom",
     },
+    status: {
+      type: String,
+      enum: ["COMPLETED", "ERROR", "NOT_CONFIGURED", "RUNNING"],
+      default: "COMPLETED",
+    },
     // Use Mixed type to allow flexible results structure
     // This supports: eslint, prettier, stylelint, htmlhint, markdownlint, npm-audit, depcheck, etc.
     results: {

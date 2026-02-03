@@ -3,18 +3,12 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
-    // Load theme from localStorage
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    const darkMode = savedTheme ? savedTheme === "dark" : prefersDark;
-
-    setIsDark(darkMode);
-    applyTheme(darkMode);
+    // Always use dark theme (green/neon)
+    setIsDark(true);
+    applyTheme(true);
   }, []);
 
   const applyTheme = (dark) => {
@@ -26,9 +20,8 @@ export const ThemeProvider = ({ children }) => {
   };
 
   const toggleTheme = (dark) => {
-    setIsDark(dark);
-    localStorage.setItem("theme", dark ? "dark" : "light");
-    applyTheme(dark);
+    // Theme is locked to dark mode
+    return;
   };
 
   return (

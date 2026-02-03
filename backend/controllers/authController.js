@@ -21,7 +21,7 @@ export const githubLogin = (req, res) => {
 
     const authorizeUrl = `https://github.com/login/oauth/authorize?client_id=${
       process.env.GITHUB_CLIENT_ID
-    }&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`;
+    }&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email,repo`;
 
     console.log("🔐 Redirecting to GitHub OAuth:", {
       clientId: process.env.GITHUB_CLIENT_ID.substring(0, 5) + "...",

@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../utils/axiosConfig.js";
 import Layout from "../components/Layout";
-import { useTheme } from "../context/ThemeContext";
+import { Badge, Button, Card, CardContent, Container, Flex, Grid, Spinner, ErrorAlert } from "../components/ui";
 
 export default function TestingResults() {
   const { owner, repo, testId } = useParams();
   const navigate = useNavigate();
-  const { isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(null);
   const [error, setError] = useState(null);
@@ -31,680 +30,242 @@ export default function TestingResults() {
     }
   };
 
-  // Helper Functions
-  const getGradeColor = (grade) => {
-    const colors = {
-      "A+": "text-green-500",
-      A: "text-green-400",
-      B: "text-blue-400",
-      C: "text-yellow-400",
-      D: "text-orange-400",
-      F: "text-red-400",
-    };
-    return colors[grade] || "text-gray-400";
+  const results = testing?.results || testing?.result || testing?.data || {};
+  const resultEntries = useMemo(() => {
+    if (!results || typeof results !== "object") return [];
+    return Object.entries(results || {});
+  }, [results]);
+
+  const normalizeSection = (section) => {
+    const normalized = section && typeof section === "object" && !Array.isArray(section)
+      ? section
+      : { summary: String(section ?? "-") };
+
+    const extraMetrics = {};
+    if (normalized.filesAnalyzed !== undefined) extraMetrics.filesAnalyzed = normalized.filesAnalyzed;
+    if (normalized.totalIssues !== undefined) extraMetrics.totalIssues = normalized.totalIssues;
+    if (normalized.score !== undefined) extraMetrics.score = normalized.score;
+    if (normalized.grade) extraMetrics.grade = normalized.grade;
+
+    const mergedMetrics = normalized.metrics && typeof normalized.metrics === "object" && !Array.isArray(normalized.metrics)
+      ? { ...extraMetrics, ...normalized.metrics }
+      : Object.keys(extraMetrics).length
+        ? extraMetrics
+        : normalized.metrics;
+
+    return { ...normalized, metrics: mergedMetrics };
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return isDark ? "text-green-400" : "text-green-600";
-    if (score >= 60) return isDark ? "text-yellow-400" : "text-yellow-600";
-    return isDark ? "text-red-400" : "text-red-600";
+  const extractIssues = (section) => {
+    if (!section || typeof section !== "object") return [];
+    if (Array.isArray(section.issues)) return section.issues;
+    if (Array.isArray(section.topIssues)) return section.topIssues;
+    if (Array.isArray(section.allIssues)) return section.allIssues;
+    if (Array.isArray(section.issuesByFile)) {
+      return section.issuesByFile.flatMap((file) =>
+        (file.issues || []).map((issue) => ({ ...issue, file: issue.file || file.file }))
+      );
+    }
+    return [];
   };
 
-  const getSeverityBadge = (severity) => {
-    const colors = {
-      critical: "bg-red-500/20 text-red-400 border-red-500/30",
-      high: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-      medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-      low: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    };
-    return colors[severity] || colors.low;
+  const formatLabel = (value) =>
+    String(value)
+      .replace(/_/g, " ")
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/^\w/, (c) => c.toUpperCase());
+
+  const formatValue = (value) => {
+    if (typeof value === "boolean") return value ? "Yes" : "No";
+    if (value === null || value === undefined) return "-";
+    if (Array.isArray(value)) return value.length ? value.join(", ") : "-";
+    if (typeof value === "object") {
+      const entries = Object.entries(value).filter(([, v]) =>
+        ["string", "number", "boolean"].includes(typeof v)
+      );
+      if (entries.length === 0) return "Available";
+      return entries
+        .map(([key, v]) => `${formatLabel(key)}: ${v}`)
+        .join(", ");
+    }
+    return String(value);
   };
 
-  // Loading State
-  if (loading) {
+  const formatText = (value) => {
+    if (typeof value === "object") return formatValue(value);
+    return value ? String(value) : "-";
+  };
+
+  const renderIssues = (issues) => {
+    if (!Array.isArray(issues) || issues.length === 0) {
+      return <p className="text-sm" style={{ color: "#9DBFB7" }}>No issues reported.</p>;
+    }
     return (
-      <Layout>
-        <div
-          className={`min-h-screen ${
-            isDark ? "bg-slate-900" : "bg-slate-50"
-          } flex items-center justify-center`}
-        >
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <p
-              className={`${
-                isDark ? "text-slate-300" : "text-slate-700"
-              } text-lg`}
-            >
+      <div className="space-y-3">
+        {issues.map((issue, index) => (
+          <div key={`${issue?.message || issue?.type || issue}-${index}`} className="rounded-lg border border-emerald-200/15 bg-carbon-50/60 p-4">
+            <Flex justify="between" align="center" className="mb-2">
+              <span className="text-sm font-semibold" style={{ color: "#E8F1EE" }}>
+                {formatLabel(issue?.type || "Issue")}
+              </span>
+              <Badge variant={issue?.severity === "high" ? "error" : issue?.severity === "medium" ? "warning" : "secondary"}>
+                {formatLabel(issue?.severity || "info")}
+              </Badge>
+            </Flex>
+            <p className="text-sm" style={{ color: "#C7E2DC" }}>
+              {formatText(issue?.message || issue?.type || issue || "No details provided.")}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderMetrics = (metrics) => {
+    if (!metrics || typeof metrics !== "object" || Array.isArray(metrics)) {
+      return null;
+    }
+    const entries = Object.entries(metrics);
+    if (entries.length === 0) return null;
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {entries.map(([metricKey, metricValue]) => (
+          <div key={metricKey} className="rounded-lg border border-emerald-200/15 bg-carbon-100/60 p-3">
+            <p className="text-xs uppercase tracking-wide" style={{ color: "#9DBFB7" }}>
+              {formatLabel(metricKey)}
+            </p>
+            <p className="text-sm font-semibold" style={{ color: "#E8F1EE" }}>
+              {formatValue(metricValue)}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <Layout>
+      <Container className="py-12">
+        <Flex justify="between" align="center" className="mb-10">
+          <div>
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/repos/${owner}/${repo}`)}>
+              ← Back to Repository
+            </Button>
+            <h1 className="text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
+              Testing Results
+            </h1>
+            <p className="mt-2" style={{ color: "#9DBFB7" }}>
+              {owner}/{repo}
+            </p>
+          </div>
+          <Badge variant="info">Test #{testId?.slice(0, 6) || "-"}</Badge>
+        </Flex>
+
+        {loading ? (
+          <div className="py-20 flex flex-col items-center">
+            <Spinner size="lg" />
+            <p className="mt-4" style={{ color: "#9DBFB7" }}>
               Loading test results...
             </p>
           </div>
-        </div>
-      </Layout>
-    );
-  }
+        ) : error || !testing ? (
+          <ErrorAlert message={error || "Test results not found"} onClose={() => setError(null)} />
+        ) : (
+          <>
+            <Grid columns={3} gap={6} className="mb-10">
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-sm" style={{ color: "#9DBFB7" }}>Repository</p>
+                  <p className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+                    {testing.owner}/{testing.repo}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-sm" style={{ color: "#9DBFB7" }}>Status</p>
+                  <p className="text-xl font-bold" style={{ color: "#6DB1A2" }}>
+                    {testing.status || "Complete"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-sm" style={{ color: "#9DBFB7" }}>Created</p>
+                  <p className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+                    {new Date(testing.createdAt || Date.now()).toLocaleString()}
+                  </p>
+                </CardContent>
+              </Card>
+            </Grid>
 
-  // Error State
-  if (error || !testing) {
-    return (
-      <Layout>
-        <div
-          className={`min-h-screen ${
-            isDark ? "bg-slate-900" : "bg-slate-50"
-          } flex items-center justify-center`}
-        >
-          <div className="text-center">
-            <p
-              className={`${
-                isDark ? "text-red-400" : "text-red-600"
-              } text-xl mb-4`}
-            >
-              {error || "Test results not found"}
-            </p>
-            <button
-              onClick={() => navigate(`/repos/${owner}/${repo}`)}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-            >
-              Back to Repository
-            </button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  const { results } = testing;
-
-  // Render Functions
-  const renderCodacyResults = (codacy) => {
-    return (
-      <div className="space-y-6">
-        {/* Quality Grade Card */}
-        <div className={`${isDark ? "bg-slate-800" : "bg-white"} rounded-2xl shadow-xl p-6 border ${isDark ? "border-slate-700" : "border-slate-200"}`}>
-          <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} mb-4 flex items-center gap-2`}>
-            <span className="text-2xl">🎨</span>
-            Codacy Quality Analysis
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className={`text-4xl font-bold ${getGradeColor(codacy.analysis.grade)} mb-2`}>
-                {codacy.analysis.grade}
-              </div>
-              <p className={isDark ? "text-slate-400" : "text-slate-600"}>Quality Grade</p>
-            </div>
-            
-            {codacy.analysis.coverage && (
-              <div className="text-center">
-                <div className={`text-4xl font-bold ${getScoreColor(codacy.analysis.coverage.percentage)}`}>
-                  {codacy.analysis.coverage.percentage}%
-                </div>
-                <p className={isDark ? "text-slate-400" : "text-slate-600"}>Code Coverage</p>
-              </div>
-            )}
-            
-            <div className="text-center">
-              <div className={`text-4xl font-bold ${isDark ? "text-purple-400" : "text-purple-600"}`}>
-                {codacy.analysis.issues.total}
-              </div>
-              <p className={isDark ? "text-slate-400" : "text-slate-600"}>Total Issues</p>
-            </div>
-          </div>
-
-          {/* Issues Breakdown */}
-          <div className="grid grid-cols-3 gap-4 mt-6">
-            <div className={`p-4 rounded-lg ${isDark ? "bg-red-500/10" : "bg-red-50"} border ${isDark ? "border-red-500/30" : "border-red-200"}`}>
-              <div className="text-2xl font-bold text-red-500">{codacy.analysis.issues.error}</div>
-              <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>Errors</div>
-            </div>
-            <div className={`p-4 rounded-lg ${isDark ? "bg-yellow-500/10" : "bg-yellow-50"} border ${isDark ? "border-yellow-500/30" : "border-yellow-200"}`}>
-              <div className="text-2xl font-bold text-yellow-500">{codacy.analysis.issues.warning}</div>
-              <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>Warnings</div>
-            </div>
-            <div className={`p-4 rounded-lg ${isDark ? "bg-blue-500/10" : "bg-blue-50"} border ${isDark ? "border-blue-500/30" : "border-blue-200"}`}>
-              <div className="text-2xl font-bold text-blue-500">{codacy.analysis.issues.info}</div>
-              <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>Info</div>
-            </div>
-          </div>
-
-          {codacy.metadata?.dashboard_url && (
-            <div className="mt-4">
-              <a
-                href={codacy.metadata.dashboard_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-purple-500 hover:text-purple-600 font-semibold"
-              >
-                View on Codacy →
-              </a>
-            </div>
-          )}
-        </div>
-
-        {/* Critical Issues */}
-        {codacy.issues?.critical?.length > 0 && (
-          <div className={`${isDark ? "bg-slate-800" : "bg-white"} rounded-2xl shadow-xl p-6 border ${isDark ? "border-slate-700" : "border-slate-200"}`}>
-            <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} mb-4`}>
-              Critical Issues ({codacy.issues.critical.length})
-            </h3>
-            <div className="space-y-3">
-              {codacy.issues.critical.slice(0, 10).map((issue, idx) => (
-                <div key={idx} className={`p-4 rounded-lg ${isDark ? "bg-red-500/10" : "bg-red-50"} border ${isDark ? "border-red-500/30" : "border-red-200"}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className={`font-semibold ${isDark ? "text-red-400" : "text-red-700"} mb-1`}>{issue.message}</p>
-                      <p className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>{issue.file}:{issue.line}</p>
-                      {issue.category && (
-                        <span className={`inline-block px-2 py-1 rounded text-xs mt-2 ${isDark ? "bg-slate-700" : "bg-slate-200"} ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                          {issue.category}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderGitHubCodeScanningResults = (scanning) => {
-    return (
-      <div className="space-y-6">
-        <div className={`${isDark ? "bg-slate-800" : "bg-white"} rounded-2xl shadow-xl p-6 border ${isDark ? "border-slate-700" : "border-slate-200"}`}>
-          <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} mb-4 flex items-center gap-2`}>
-            <span className="text-2xl">🔒</span>
-            GitHub Code Scanning Results
-          </h3>
-          <p className={isDark ? "text-slate-300" : "text-slate-700"}>
-            Security analysis powered by CodeQL
-          </p>
-        </div>
-      </div>
-    );
-  };
-
-  const renderSonarCloudResults = (sonar) => {
-    return (
-      <div className="space-y-6">
-        <div className={`${isDark ? "bg-slate-800" : "bg-white"} rounded-2xl shadow-xl p-6 border ${isDark ? "border-slate-700" : "border-slate-200"}`}>
-          <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} mb-4 flex items-center gap-2`}>
-            <span className="text-2xl">📊</span>
-            SonarCloud Analysis Results
-          </h3>
-          <p className={isDark ? "text-slate-300" : "text-slate-700"}>
-            Comprehensive code quality metrics
-          </p>
-        </div>
-      </div>
-    );
-  };
-
-  const renderCustomResults = () => {
-    return (
-      <>
-        {/* Score Breakdown */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <div className="text-center">
-            <div className={`text-2xl font-bold ${getScoreColor(results.codeQuality.score)}`}>
-              {results.codeQuality.score}
-            </div>
-            <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-              Code Quality
-            </div>
-          </div>
-          <div className="text-center">
-            <div className={`text-2xl font-bold ${getScoreColor(results.security.score)}`}>
-              {results.security.score}
-            </div>
-            <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-              Security
-            </div>
-          </div>
-          <div className="text-center">
-            <div className={`text-2xl font-bold ${getScoreColor(results.testReadiness.score)}`}>
-              {results.testReadiness.score}
-            </div>
-            <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-              Test Readiness
-            </div>
-          </div>
-          <div className="text-center">
-            <div className={`text-2xl font-bold ${getScoreColor(results.performance.score)}`}>
-              {results.performance.score}
-            </div>
-            <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-              Performance
-            </div>
-          </div>
-          <div className="text-center">
-            <div className={`text-2xl font-bold ${getScoreColor(results.aiAnalysis.score)}`}>
-              {results.aiAnalysis.score}
-            </div>
-            <div className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-              AI Analysis
-            </div>
-          </div>
-        </div>
-
-        {/* Main 2-Column Grid with 4 Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Code Quality Card */}
-          <div
-            className={`${
-              isDark ? "bg-slate-800" : "bg-white"
-            } rounded-xl shadow-lg p-6 border ${
-              isDark ? "border-slate-700" : "border-slate-200"
-            }`}
-          >
-            <h3
-              className={`text-xl font-bold ${
-                isDark ? "text-white" : "text-slate-900"
-              } mb-4 flex items-center gap-2`}
-            >
-              <span className="text-2xl">📊</span>
-              Code Quality
-            </h3>
-            
-            <div className="mb-4">
-              <div className={`text-3xl font-bold ${getScoreColor(results.codeQuality.score)} mb-2`}>
-                {results.codeQuality.score}/100
-              </div>
-              
-              {results.codeQuality.metrics && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span>{results.codeQuality.metrics.hasReadme ? "✅" : "❌"}</span>
-                    <span className={isDark ? "text-slate-300" : "text-slate-700"}>README.md</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>{results.codeQuality.metrics.hasGitignore ? "✅" : "❌"}</span>
-                    <span className={isDark ? "text-slate-300" : "text-slate-700"}>.gitignore</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>{results.codeQuality.metrics.hasLicense ? "✅" : "❌"}</span>
-                    <span className={isDark ? "text-slate-300" : "text-slate-700"}>LICENSE</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>{results.codeQuality.metrics.hasCI ? "✅" : "❌"}</span>
-                    <span className={isDark ? "text-slate-300" : "text-slate-700"}>CI/CD</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>{results.codeQuality.metrics.hasTestDir ? "✅" : "❌"}</span>
-                    <span className={isDark ? "text-slate-300" : "text-slate-700"}>Test Directory</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {results.codeQuality.issues?.length > 0 && (
-              <div className="mt-4">
-                <h4 className={`font-semibold ${isDark ? "text-slate-300" : "text-slate-700"} mb-2`}>
-                  Issues Found:
-                </h4>
-                <div className="space-y-2">
-                  {results.codeQuality.issues.map((issue, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-3 rounded-lg ${
-                        isDark ? "bg-slate-700/50" : "bg-slate-100"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${getSeverityBadge(issue.severity)}`}>
-                          {issue.severity}
-                        </span>
-                        <span className={isDark ? "text-slate-300" : "text-slate-700"}>
-                          {issue.message}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Security Card */}
-          <div
-            className={`${
-              isDark ? "bg-slate-800" : "bg-white"
-            } rounded-xl shadow-lg p-6 border ${
-              isDark ? "border-slate-700" : "border-slate-200"
-            }`}
-          >
-            <h3
-              className={`text-xl font-bold ${
-                isDark ? "text-white" : "text-slate-900"
-              } mb-4 flex items-center gap-2`}
-            >
-              <span className="text-2xl">🔐</span>
-              Security
-            </h3>
-            
-            <div className={`text-3xl font-bold ${getScoreColor(results.security.score)} mb-4`}>
-              {results.security.score}/100
-            </div>
-
-            {results.security.vulnerabilities?.length > 0 && (
-              <div className="mb-4">
-                <h4 className={`font-semibold ${isDark ? "text-slate-300" : "text-slate-700"} mb-2`}>
-                  Vulnerabilities:
-                </h4>
-                <div className="space-y-2">
-                  {results.security.vulnerabilities.map((vuln, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-3 rounded-lg ${
-                        isDark ? "bg-slate-700/50" : "bg-slate-100"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2 mb-1">
-                        <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${getSeverityBadge(vuln.severity)}`}>
-                          {vuln.severity}
-                        </span>
-                        <span className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-800"}`}>
-                          {vuln.package || vuln.file}
-                        </span>
-                      </div>
-                      <p className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"} ml-2`}>
-                        {vuln.issue}
-                      </p>
-                      {vuln.recommendation && (
-                        <p className={`text-sm ${isDark ? "text-blue-400" : "text-blue-600"} ml-2 mt-1`}>
-                          💡 {vuln.recommendation}
+            {resultEntries.length === 0 ? (
+              <Card>
+                <CardContent className="py-16 text-center">
+                  <div className="text-5xl mb-4">📊</div>
+                  <h3 className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+                    No results available
+                  </h3>
+                  <p className="mt-2" style={{ color: "#9DBFB7" }}>
+                    The test did not return result data.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {resultEntries.map(([key, section]) => {
+                  const normalizedSection = normalizeSection(section);
+                  return (
+                  <Card key={key}>
+                    <CardContent className="p-6">
+                      <Flex justify="between" align="center" className="mb-4">
+                        <h3 className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+                          {key.toUpperCase()}
+                        </h3>
+                        {normalizedSection?.score !== undefined ? (
+                          <Badge variant="info">Score {normalizedSection.score}</Badge>
+                        ) : (
+                          <Badge variant="secondary">Section</Badge>
+                        )}
+                      </Flex>
+                      {normalizedSection?.summary && (
+                        <p className="text-sm mb-4" style={{ color: "#C7E2DC" }}>
+                          {formatText(normalizedSection.summary)}
                         </p>
                       )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
-            {results.security.vulnerabilities?.length === 0 && (
-              <div className={`p-4 rounded-lg ${isDark ? "bg-green-500/10" : "bg-green-50"} border ${isDark ? "border-green-500/30" : "border-green-200"}`}>
-                <p className={`${isDark ? "text-green-400" : "text-green-700"} font-semibold`}>
-                  ✅ No vulnerabilities detected
-                </p>
-              </div>
-            )}
+                      {extractIssues(normalizedSection).length > 0 && (
+                        <div className="mb-5">
+                          <p className="text-sm font-semibold mb-3" style={{ color: "#E8F1EE" }}>
+                            Issues
+                          </p>
+                          {renderIssues(extractIssues(normalizedSection))}
+                        </div>
+                      )}
 
-            {results.security.warnings?.length > 0 && (
-              <div className="mt-4">
-                <h4 className={`font-semibold ${isDark ? "text-slate-300" : "text-slate-700"} mb-2`}>
-                  Warnings:
-                </h4>
-                <ul className="space-y-1">
-                  {results.security.warnings.map((warning, idx) => (
-                    <li key={idx} className={`text-sm ${isDark ? "text-yellow-400" : "text-yellow-700"}`}>
-                      ⚠️ {warning}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+                      {normalizedSection?.metrics && (
+                        <div>
+                          <p className="text-sm font-semibold mb-3" style={{ color: "#E8F1EE" }}>
+                            Metrics
+                          </p>
+                          {renderMetrics(normalizedSection.metrics)}
+                        </div>
+                      )}
 
-          {/* Test Readiness Card */}
-          <div
-            className={`${
-              isDark ? "bg-slate-800" : "bg-white"
-            } rounded-xl shadow-lg p-6 border ${
-              isDark ? "border-slate-700" : "border-slate-200"
-            }`}
-          >
-            <h3
-              className={`text-xl font-bold ${
-                isDark ? "text-white" : "text-slate-900"
-              } mb-4 flex items-center gap-2`}
-            >
-              <span className="text-2xl">🧪</span>
-              Test Readiness
-            </h3>
-            
-            <div className={`text-3xl font-bold ${getScoreColor(results.testReadiness.score)} mb-4`}>
-              {results.testReadiness.score}/100
-            </div>
-
-            <div className="space-y-3 mb-4">
-              <div className="flex items-center justify-between">
-                <span className={isDark ? "text-slate-300" : "text-slate-700"}>Has Tests</span>
-                <span className={results.testReadiness.hasTests ? "text-green-400" : "text-red-400"}>
-                  {results.testReadiness.hasTests ? "✅ Yes" : "❌ No"}
-                </span>
-              </div>
-              {results.testReadiness.testFramework && (
-                <div className="flex items-center justify-between">
-                  <span className={isDark ? "text-slate-300" : "text-slate-700"}>Framework</span>
-                  <span className={`font-semibold ${isDark ? "text-purple-400" : "text-purple-600"}`}>
-                    {results.testReadiness.testFramework}
-                  </span>
-                </div>
-              )}
-              {results.testReadiness.coverage && (
-                <div className="flex items-center justify-between">
-                  <span className={isDark ? "text-slate-300" : "text-slate-700"}>Coverage</span>
-                  <span className="text-green-400">{results.testReadiness.coverage}</span>
-                </div>
-              )}
-            </div>
-
-            {results.testReadiness.issues?.length > 0 && (
-              <div>
-                <h4 className={`font-semibold ${isDark ? "text-slate-300" : "text-slate-700"} mb-2`}>
-                  Issues:
-                </h4>
-                <div className="space-y-2">
-                  {results.testReadiness.issues.map((issue, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-3 rounded-lg ${
-                        isDark ? "bg-slate-700/50" : "bg-slate-100"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${getSeverityBadge(issue.severity)}`}>
-                          {issue.severity}
-                        </span>
-                        <span className={`text-sm ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                          {issue.message}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* AI Analysis Card */}
-          <div
-            className={`${
-              isDark ? "bg-slate-800" : "bg-white"
-            } rounded-xl shadow-lg p-6 border ${
-              isDark ? "border-slate-700" : "border-slate-200"
-            }`}
-          >
-            <h3
-              className={`text-xl font-bold ${
-                isDark ? "text-white" : "text-slate-900"
-              } mb-4 flex items-center gap-2`}
-            >
-              <span className="text-2xl">🤖</span>
-              AI Analysis
-            </h3>
-            
-            <div className={`text-3xl font-bold ${getScoreColor(results.aiAnalysis.score)} mb-4`}>
-              {results.aiAnalysis.score}/100
-            </div>
-
-            {results.aiAnalysis.insights?.length > 0 && (
-              <div className="mb-4">
-                <h4 className={`font-semibold ${isDark ? "text-slate-300" : "text-slate-700"} mb-2`}>
-                  Insights:
-                </h4>
-                <ul className="space-y-2">
-                  {results.aiAnalysis.insights.map((insight, idx) => (
-                    <li
-                      key={idx}
-                      className={`p-3 rounded-lg ${
-                        isDark ? "bg-blue-500/10" : "bg-blue-50"
-                      } border ${isDark ? "border-blue-500/30" : "border-blue-200"}`}
-                    >
-                      <span className={isDark ? "text-slate-300" : "text-slate-700"}>
-                        💡 {insight}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {results.aiAnalysis.suggestions?.length > 0 && (
-              <div>
-                <h4 className={`font-semibold ${isDark ? "text-slate-300" : "text-slate-700"} mb-2`}>
-                  Suggestions:
-                </h4>
-                <ul className="space-y-2">
-                  {results.aiAnalysis.suggestions.map((suggestion, idx) => (
-                    <li
-                      key={idx}
-                      className={`p-3 rounded-lg ${
-                        isDark ? "bg-purple-500/10" : "bg-purple-50"
-                      } border ${isDark ? "border-purple-500/30" : "border-purple-200"}`}
-                    >
-                      <span className={isDark ? "text-slate-300" : "text-slate-700"}>
-                        🚀 {suggestion}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Performance Section - Full Width */}
-        {results.performance && (
-          <div
-            className={`${
-              isDark ? "bg-slate-800" : "bg-white"
-            } rounded-xl shadow-lg p-6 border ${
-              isDark ? "border-slate-700" : "border-slate-200"
-            }`}
-          >
-            <h3
-              className={`text-xl font-bold ${
-                isDark ? "text-white" : "text-slate-900"
-              } mb-4 flex items-center gap-2`}
-            >
-              <span className="text-2xl">⚡</span>
-              Performance
-            </h3>
-            
-            <div className={`text-3xl font-bold ${getScoreColor(results.performance.score)} mb-4`}>
-              {results.performance.score}/100
-            </div>
-
-            {results.performance.issues?.length > 0 && (
-              <div className="mb-4">
-                <h4 className={`font-semibold ${isDark ? "text-slate-300" : "text-slate-700"} mb-2`}>
-                  Issues:
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {results.performance.issues.map((issue, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-3 rounded-lg ${
-                        isDark ? "bg-slate-700/50" : "bg-slate-100"
-                      }`}
-                    >
-                      <p className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-800"} mb-1`}>
-                        {issue.message}
-                      </p>
-                      {issue.suggestion && (
-                        <p className={`text-sm ${isDark ? "text-blue-400" : "text-blue-600"}`}>
-                          💡 {issue.suggestion}
+                      {!normalizedSection?.summary && !normalizedSection?.metrics && extractIssues(normalizedSection).length === 0 && (
+                        <p className="text-sm" style={{ color: "#9DBFB7" }}>
+                          No extracted insights available for this section.
                         </p>
                       )}
-                    </div>
-                  ))}
-                </div>
+                    </CardContent>
+                  </Card>
+                  );
+                })}
               </div>
             )}
-
-            {results.performance.suggestions?.length > 0 && (
-              <div>
-                <h4 className={`font-semibold ${isDark ? "text-slate-300" : "text-slate-700"} mb-2`}>
-                  Suggestions:
-                </h4>
-                <ul className="space-y-2">
-                  {results.performance.suggestions.map((suggestion, idx) => (
-                    <li
-                      key={idx}
-                      className={`p-3 rounded-lg ${
-                        isDark ? "bg-green-500/10" : "bg-green-50"
-                      } border ${isDark ? "border-green-500/30" : "border-green-200"}`}
-                    >
-                      <span className={isDark ? "text-slate-300" : "text-slate-700"}>
-                        ⚡ {suggestion}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+          </>
         )}
-      </>
-    );
-  };
-
-  const renderResultsByType = () => {
-    if (results.codacy) {
-      return renderCodacyResults(results.codacy);
-    }
-    if (results.githubCodeScanning) {
-      return renderGitHubCodeScanningResults(results.githubCodeScanning);
-    }
-    if (results.sonarcloud) {
-      return renderSonarCloudResults(results.sonarcloud);
-    }
-    return renderCustomResults();
-  };
-
-  // Main Component Return
-  return (
-    <Layout>
-      <div className={`min-h-screen ${isDark ? "bg-slate-900" : "bg-slate-50"} p-6`}>
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-900"} mb-2`}>
-              Test Results for {owner}/{repo}
-            </h1>
-            <div className="flex items-center gap-4">
-              <div className={`px-4 py-2 rounded-lg ${isDark ? "bg-slate-800" : "bg-white"} border ${isDark ? "border-slate-700" : "border-slate-200"}`}>
-                <span className={isDark ? "text-slate-400" : "text-slate-600"}>Overall Score:</span>
-                <span className={`ml-2 font-bold text-2xl ${getScoreColor(testing.overallScore)}`}>
-                  {testing.overallScore}
-                </span>
-              </div>
-              <div className={`px-4 py-2 rounded-lg ${isDark ? "bg-slate-800" : "bg-white"} border ${isDark ? "border-slate-700" : "border-slate-200"}`}>
-                <span className={isDark ? "text-slate-400" : "text-slate-600"}>Grade:</span>
-                <span className={`ml-2 font-bold text-2xl ${getGradeColor(testing.grade)}`}>
-                  {testing.grade}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Render Results Based on Type */}
-          {renderResultsByType()}
-        </div>
-      </div>
+      </Container>
     </Layout>
   );
 }

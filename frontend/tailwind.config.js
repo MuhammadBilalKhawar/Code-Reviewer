@@ -4,6 +4,33 @@ export default {
   darkMode: "selector", // Use 'dark' class on html element
   theme: {
     extend: {
+      colors: {
+        // Copper + Midnight Green Premium Theme
+        carbon: {
+          DEFAULT: '#0F1F1C',
+          50: '#17302A',
+          100: '#152824',
+          200: '#0F1F1C',
+          300: '#0D1A17',
+          400: '#0B1513',
+        },
+        copper: {
+          DEFAULT: '#C47A3A',
+          50: '#E8D5C4',
+          100: '#D4A574',
+          200: '#C47A3A',
+          300: '#B86F2F',
+          400: '#A86428',
+          500: '#985921',
+        },
+        neon: {
+          copper: '#C47A3A',
+          accent: '#6DB1A2',
+          error: '#FF6B5B',
+          text: '#E8F1EE',
+          muted: '#9DBFB7',
+        }
+      },
       animation: {
         "fade-in-up": "fadeInUp 0.6s ease-out",
         "fade-in-down": "fadeInDown 0.6s ease-out",

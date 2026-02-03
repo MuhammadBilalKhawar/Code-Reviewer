@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../utils/axiosConfig.js";
 import Layout from "../components/Layout";
-import { useTheme } from "../context/ThemeContext";
+import { Badge, Button, Card, CardContent, Container, Flex, Grid, Spinner, ErrorAlert } from "../components/ui";
 
 export default function PullRequestDetail() {
   const { owner, repo, number } = useParams();
   const navigate = useNavigate();
-  const { isDark } = useTheme();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewLoading, setReviewLoading] = useState(false);
@@ -55,278 +54,93 @@ export default function PullRequestDetail() {
 
   return (
     <Layout>
-      <div
-        className={`p-8 ${
-          isDark ? "bg-slate-900" : "bg-slate-50"
-        } min-h-screen transition-colors`}
-      >
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-10 animate-fade-in-down">
-            <button
-              onClick={() => navigate(`/repos/${owner}/${repo}`)}
-              className={`flex items-center gap-2 ${
-                isDark
-                  ? "text-purple-400 hover:text-purple-300"
-                  : "text-purple-600 hover:text-purple-700"
-              } font-semibold mb-4 transition-colors`}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path
-                  d="M19 12H5m7-7l-7 7 7 7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </svg>
-              Back
-            </button>
-            <div className="flex items-center justify-between">
-              <div>
-                <h1
-                  className={`text-4xl font-bold ${
-                    isDark ? "text-white" : "text-slate-900"
-                  } mb-2`}
-                >
-                  Pull Request #{number}
-                </h1>
-                <p
-                  className={`${
-                    isDark ? "text-slate-400" : "text-slate-600"
-                  } text-lg`}
-                >
-                  {owner}/{repo}
-                </p>
-              </div>
-              <button
-                onClick={runAiReview}
-                disabled={reviewLoading}
-                className="bg-linear-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 px-8 rounded-xl hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105"
-              >
-                {reviewLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Analyzing...
-                  </div>
-                ) : (
-                  "Run AI Review"
-                )}
-              </button>
-            </div>
+      <Container className="py-12">
+        <Flex justify="between" align="center" className="mb-10">
+          <div>
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/repos/${owner}/${repo}`)}>
+              ← Back
+            </Button>
+            <h1 className="text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
+              Pull Request #{number}
+            </h1>
+            <p className="mt-2" style={{ color: "#9DBFB7" }}>
+              {owner}/{repo}
+            </p>
           </div>
+          <Button onClick={runAiReview} disabled={reviewLoading}>
+            {reviewLoading ? "Analyzing..." : "Run AI Review"}
+          </Button>
+        </Flex>
 
-          {/* Error Alert */}
-          {error && (
-            <div
-              className={`mb-8 ${
-                isDark
-                  ? "bg-red-900/30 border-red-700"
-                  : "bg-red-50 border-red-200"
-              } border rounded-xl p-4 flex items-start gap-3`}
-            >
-              <svg
-                className={`w-6 h-6 ${
-                  isDark ? "text-red-400" : "text-red-600"
-                } shrink-0 mt-0.5`}
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-              </svg>
-              <div>
-                <p
-                  className={`font-semibold ${
-                    isDark ? "text-red-300" : "text-red-900"
-                  }`}
-                >
-                  {error}
-                </p>
-              </div>
-            </div>
-          )}
+        {error && <ErrorAlert message={error} onClose={() => setError("")} />}
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-              <p
-                className={`${
-                  isDark ? "text-slate-400" : "text-slate-600"
-                } text-lg font-medium`}
-              >
-                Loading files...
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Metrics Grid */}
-              <div className="grid grid-cols-3 gap-6 mb-10 animate-stagger">
-                <div
-                  className={`${
-                    isDark
-                      ? "bg-slate-800 border-slate-700"
-                      : "bg-white border-slate-200"
-                  } rounded-xl border shadow-sm p-6 animate-fade-in-up hover-lift`}
-                >
-                  <p
-                    className={`${
-                      isDark ? "text-slate-400" : "text-slate-600"
-                    } text-sm font-medium mb-2`}
-                  >
-                    Files Changed
-                  </p>
-                  <p
-                    className={`text-4xl font-bold ${
-                      isDark ? "text-white" : "text-slate-900"
-                    }`}
-                  >
-                    {files.length}
-                  </p>
-                </div>
-                <div
-                  className={`${
-                    isDark
-                      ? "bg-slate-800 border-slate-700"
-                      : "bg-white border-slate-200"
-                  } rounded-xl border shadow-sm p-6 animate-fade-in-up hover-lift`}
-                >
-                  <p
-                    className={`${
-                      isDark ? "text-slate-400" : "text-slate-600"
-                    } text-sm font-medium mb-2`}
-                  >
-                    Additions
-                  </p>
-                  <p className="text-4xl font-bold text-green-600">
-                    +{totalAdditions}
-                  </p>
-                </div>
-                <div
-                  className={`${
-                    isDark
-                      ? "bg-slate-800 border-slate-700"
-                      : "bg-white border-slate-200"
-                  } rounded-xl border shadow-sm p-6 animate-fade-in-up hover-lift`}
-                >
-                  <p
-                    className={`${
-                      isDark ? "text-slate-400" : "text-slate-600"
-                    } text-sm font-medium mb-2`}
-                  >
-                    Deletions
-                  </p>
-                  <p className="text-4xl font-bold text-red-600">
-                    -{totalDeletions}
-                  </p>
-                </div>
-              </div>
+        {loading ? (
+          <div className="py-20 flex flex-col items-center">
+            <Spinner size="lg" />
+            <p className="mt-4" style={{ color: "#9DBFB7" }}>
+              Loading files...
+            </p>
+          </div>
+        ) : (
+          <>
+            <Grid columns={3} gap={6} className="mb-10">
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-sm" style={{ color: "#9DBFB7" }}>Files Changed</p>
+                  <p className="text-4xl font-bold" style={{ color: "#E8F1EE" }}>{files.length}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-sm" style={{ color: "#9DBFB7" }}>Additions</p>
+                  <p className="text-4xl font-bold" style={{ color: "#6DB1A2" }}>+{totalAdditions}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-sm" style={{ color: "#9DBFB7" }}>Deletions</p>
+                  <p className="text-4xl font-bold" style={{ color: "#FF6B5B" }}>-{totalDeletions}</p>
+                </CardContent>
+              </Card>
+            </Grid>
 
-              {/* Files List */}
-              <div
-                className={`${
-                  isDark
-                    ? "bg-slate-800 border-slate-700"
-                    : "bg-white border-slate-200"
-                } rounded-xl border shadow-sm overflow-hidden animate-fade-in-up`}
-              >
-                <div
-                  className={`p-6 border-b ${
-                    isDark
-                      ? "border-slate-700 bg-linear-to-r from-slate-800 to-slate-700"
-                      : "border-slate-200 bg-linear-to-r from-purple-50 to-indigo-50"
-                  }`}
-                >
-                  <h2
-                    className={`text-2xl font-bold ${
-                      isDark ? "text-white" : "text-slate-900"
-                    }`}
-                  >
-                    Files Changed
-                  </h2>
-                  <p
-                    className={`${
-                      isDark ? "text-slate-400" : "text-slate-600"
-                    } text-sm mt-1`}
-                  >
-                    {files.length} file{files.length !== 1 ? "s" : ""}
-                  </p>
-                </div>
+            <Card>
+              <CardContent className="p-6">
+                <Flex justify="between" align="center" className="mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold" style={{ color: "#E8F1EE" }}>
+                      Files Changed
+                    </h2>
+                    <p className="text-sm" style={{ color: "#9DBFB7" }}>
+                      {files.length} file{files.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <Badge variant="info">PR Files</Badge>
+                </Flex>
 
-                <div
-                  className={`divide-y ${
-                    isDark ? "divide-slate-700" : "divide-slate-200"
-                  } max-h-96 overflow-y-auto`}
-                >
-                  {files.length > 0 ? (
-                    files.map((f) => (
-                      <div
-                        key={f.sha + f.filename}
-                        className={`p-6 ${
-                          isDark ? "hover:bg-slate-700/50" : "hover:bg-slate-50"
-                        } transition-colors flex items-center justify-between`}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                f.status === "added"
-                                  ? isDark
-                                    ? "bg-green-900/30 text-green-400"
-                                    : "bg-green-100 text-green-800"
-                                  : f.status === "removed"
-                                  ? isDark
-                                    ? "bg-red-900/30 text-red-400"
-                                    : "bg-red-100 text-red-800"
-                                  : f.status === "renamed"
-                                  ? isDark
-                                    ? "bg-blue-900/30 text-blue-400"
-                                    : "bg-blue-100 text-blue-800"
-                                  : isDark
-                                  ? "bg-slate-700 text-slate-400"
-                                  : "bg-slate-100 text-slate-800"
-                              }`}
-                            >
-                              {f.status?.toUpperCase()}
-                            </span>
-                            <p
-                              className={`font-mono ${
-                                isDark ? "text-white" : "text-slate-900"
-                              } truncate`}
-                            >
-                              {f.filename}
-                            </p>
+                <div className="space-y-3 max-h-[520px] overflow-y-auto">
+                  {files.map((file) => (
+                    <Card key={file.sha} className="border border-copper/15">
+                      <CardContent className="p-4">
+                        <Flex justify="between" align="center">
+                          <div>
+                            <p className="font-semibold" style={{ color: "#E8F1EE" }}>{file.filename}</p>
+                            <p className="text-sm" style={{ color: "#9DBFB7" }}>{file.status}</p>
                           </div>
-                          <p
-                            className={`text-sm font-mono ${
-                              isDark ? "text-slate-500" : "text-slate-500"
-                            }`}
-                          >
-                            {f.filename.split("/").pop()}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-4 ml-6 shrink-0">
-                          <span className="text-green-600 font-semibold">
-                            +{f.additions || 0}
-                          </span>
-                          <span className="text-red-600 font-semibold">
-                            -{f.deletions || 0}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div
-                      className={`p-12 text-center ${
-                        isDark ? "text-slate-400" : "text-slate-600"
-                      }`}
-                    >
-                      <p>No files changed</p>
-                    </div>
-                  )}
+                          <Flex gap={2}>
+                            <Badge variant="success">+{file.additions || 0}</Badge>
+                            <Badge variant="error">-{file.deletions || 0}</Badge>
+                          </Flex>
+                        </Flex>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </Container>
     </Layout>
   );
 }

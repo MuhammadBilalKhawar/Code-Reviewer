@@ -2,16 +2,18 @@ import Review from "../models/Review.js";
 import { githubApi } from "../utils/githubapi.js";
 import { groq, GROQ_MODEL } from "../utils/groqClient.js";
 
-// Helper: Truncate diff to fit within Groq token limits
+/**
+ * Truncate diff to fit within AI token limits
+ */
 const truncateDiff = (diffs, maxChars = 8000) => {
   if (diffs.length <= maxChars) return diffs;
   const truncated = diffs.substring(0, maxChars);
   return truncated + "\n\n[... diff truncated due to size ...]";
 };
 
-// ----------------------
-// PR REVIEW (Pull Request)
-// ----------------------
+/**
+ * Create code review for pull request
+ */
 export const createReview = async (req, res) => {
   try {
     const { owner, repo, pullNumber } = req.body;

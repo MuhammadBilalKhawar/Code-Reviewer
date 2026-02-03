@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+﻿import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../utils/axiosConfig.js";
 import Layout from "../components/Layout";
-import { useTheme } from "../context/ThemeContext";
+import { Badge, Button, Card, CardContent, Container, Flex, Grid, Spinner } from "../components/ui";
 
 export default function RepositoryDetail() {
   const { owner, repo } = useParams();
   const navigate = useNavigate();
-  const { isDark } = useTheme();
   const [pulls, setPulls] = useState([]);
   const [commits, setCommits] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,19 +29,10 @@ export default function RepositoryDetail() {
     fetchData();
   }, [owner, repo]);
 
-  const goPRDetail = (number) => {
-    navigate(`/repos/${owner}/${repo}/pull/${number}`);
-  };
-
-  const goCommitDetail = (sha) => {
-    navigate(`/repos/${owner}/${repo}/commit/${sha}`);
-  };
-
   const runTests = async () => {
     try {
       setLoading(true);
       const res = await api.post("/api/testing", { owner, repo });
-      // Navigate to testing results
       navigate(`/repos/${owner}/${repo}/test/${res.data.testing._id}`);
     } catch (err) {
       console.error("Failed to run tests", err);
@@ -53,315 +43,130 @@ export default function RepositoryDetail() {
 
   return (
     <Layout>
-      <div
-        className={`p-8 ${
-          isDark ? "bg-slate-900" : "bg-slate-50"
-        } min-h-screen transition-colors`}
-      >
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-10 animate-fade-in-down">
-            <button
-              onClick={() => navigate("/repositories")}
-              className={`flex items-center gap-2 ${
-                isDark
-                  ? "text-purple-400 hover:text-purple-300"
-                  : "text-purple-600 hover:text-purple-700"
-              } font-semibold mb-4 transition-colors`}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path
-                  d="M19 12H5m7-7l-7 7 7 7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </svg>
+      <Container className="py-12">
+        <Flex justify="between" align="center" className="mb-10">
+          <div>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/repositories")}>
               Back to Repositories
-            </button>
-            <h1
-              className={`text-4xl font-bold ${
-                isDark ? "text-white" : "text-slate-900"
-              } mb-2`}
-            >
+            </Button>
+            <h1 className="text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
               {repo}
             </h1>
-            <p
-              className={`${
-                isDark ? "text-slate-400" : "text-slate-600"
-              } text-lg`}
-            >
-              Review and analyze pull requests & commits
+            <p className="mt-2" style={{ color: "#9DBFB7" }}>
+              {owner}/{repo}
             </p>
-            
-            {/* Run Tests Button */}
-            <button
-              onClick={runTests}
-              disabled={loading}
-              className={`mt-4 px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all ${
-                loading
-                  ? "bg-slate-500 cursor-not-allowed"
-                  : isDark
-                  ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl"
-                  : "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl"
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-              {loading ? "Running Tests..." : "🧪 Run Full Test Suite"}
-            </button>
           </div>
+          <Button variant="primary" onClick={runTests}>
+            Run Full Test Suite
+          </Button>
+        </Flex>
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-              <p
-                className={`${
-                  isDark ? "text-slate-400" : "text-slate-600"
-                } text-lg font-medium`}
-              >
-                Loading pull requests & commits...
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-stagger">
-              {/* Pull Requests Section */}
-              <section
-                className={`${
-                  isDark
-                    ? "bg-slate-800 border-slate-700"
-                    : "bg-white border-slate-200"
-                } rounded-xl border shadow-sm overflow-hidden animate-fade-in-up hover-lift`}
-              >
-                <div
-                  className={`p-6 border-b ${
-                    isDark
-                      ? "border-slate-700 bg-linear-to-r from-blue-900/30 to-blue-900/50"
-                      : "border-slate-200 bg-linear-to-r from-blue-50 to-blue-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <svg
-                      className={`w-6 h-6 ${
-                        isDark ? "text-blue-400" : "text-blue-600"
-                      }`}
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-                    </svg>
-                    <h2
-                      className={`text-2xl font-bold ${
-                        isDark ? "text-white" : "text-slate-900"
-                      }`}
-                    >
+        {loading ? (
+          <div className="py-20 flex flex-col items-center">
+            <Spinner size="lg" />
+            <p className="mt-4" style={{ color: "#9DBFB7" }}>
+              Loading pull requests & commits...
+            </p>
+          </div>
+        ) : (
+          <Grid columns={2} gap={8} responsive={false} className="grid-cols-1 lg:grid-cols-2">
+            <Card className="border border-emerald-200/25 bg-carbon-100/90 shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
+              <CardContent className="p-6">
+                <Flex justify="between" align="center" className="mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold" style={{ color: "#E8F1EE" }}>
                       Pull Requests
                     </h2>
+                    <p className="text-sm" style={{ color: "#9DBFB7" }}>
+                      {pulls.length} total
+                    </p>
                   </div>
-                  <p
-                    className={`${
-                      isDark ? "text-slate-400" : "text-slate-600"
-                    } text-sm`}
-                  >
-                    {pulls.length} pull request{pulls.length !== 1 ? "s" : ""}
-                  </p>
-                </div>
+                  <Badge variant="info">PRs</Badge>
+                </Flex>
 
-                <div
-                  className={`divide-y ${
-                    isDark ? "divide-slate-700" : "divide-slate-200"
-                  } max-h-96 overflow-y-auto`}
-                >
+                <div className="space-y-4 max-h-[520px] overflow-y-auto">
                   {pulls.length > 0 ? (
                     pulls.map((pr) => (
-                      <div
-                        key={pr.id}
-                        className={`p-6 ${
-                          isDark ? "hover:bg-slate-700/50" : "hover:bg-slate-50"
-                        } transition-colors`}
-                      >
-                        <div className="flex items-start justify-between gap-4 mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span
-                                className={`text-sm font-mono ${
-                                  isDark
-                                    ? "text-slate-400 bg-slate-700"
-                                    : "text-slate-600 bg-slate-100"
-                                } px-2 py-1 rounded`}
-                              >
-                                #{pr.number}
-                              </span>
-                              <h3
-                                className={`font-semibold ${
-                                  isDark ? "text-white" : "text-slate-900"
-                                } line-clamp-2`}
-                              >
+                      <Card key={pr.id} className="border border-emerald-200/20 bg-carbon-100/70 hover:border-emerald-200/45 transition-colors">
+                        <CardContent className="p-4 space-y-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">#{pr.number}</Badge>
+                              <h3 className="font-semibold" style={{ color: "#E8F1EE" }}>
                                 {pr.title}
                               </h3>
                             </div>
-                            <div
-                              className={`flex items-center gap-3 text-sm ${
-                                isDark ? "text-slate-400" : "text-slate-600"
-                              }`}
-                            >
-                              <span>{pr.user?.login}</span>
-                              <span>•</span>
-                              <span>
-                                {new Date(pr.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
+                            <p className="text-sm mt-1" style={{ color: "#9DBFB7" }}>
+                              {pr.user?.login} • {new Date(pr.created_at).toLocaleDateString()}
+                            </p>
                           </div>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-                              pr.state === "open"
-                                ? isDark
-                                  ? "bg-green-900/30 text-green-400"
-                                  : "bg-green-100 text-green-800"
-                                : isDark
-                                ? "bg-purple-900/30 text-purple-400"
-                                : "bg-purple-100 text-purple-800"
-                            }`}
-                          >
-                            {pr.state === "open" ? "Open" : "Merged"}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => goPRDetail(pr.number)}
-                          className={`w-full ${
-                            isDark
-                              ? "bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600"
-                              : "bg-linear-to-r from-blue-600 to-blue-700 hover:shadow-lg"
-                          } text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 hover-lift`}
-                        >
-                          Run AI Review
-                        </button>
-                      </div>
+                          <Flex justify="between" align="center">
+                            <Badge variant={pr.state === "open" ? "success" : "secondary"}>
+                              {pr.state === "open" ? "Open" : "Merged"}
+                            </Badge>
+                            <Button size="sm" onClick={() => navigate(`/repos/${owner}/${repo}/pull/${pr.number}`)}>
+                              Run AI Review
+                            </Button>
+                          </Flex>
+                        </CardContent>
+                      </Card>
                     ))
                   ) : (
-                    <div
-                      className={`p-12 text-center ${
-                        isDark ? "text-slate-400" : "text-slate-600"
-                      }`}
-                    >
-                      <p>No pull requests</p>
-                    </div>
+                    <p className="text-sm" style={{ color: "#9DBFB7" }}>
+                      No pull requests found.
+                    </p>
                   )}
                 </div>
-              </section>
+              </CardContent>
+            </Card>
 
-              {/* Commits Section */}
-              <section
-                className={`${
-                  isDark
-                    ? "bg-slate-800 border-slate-700"
-                    : "bg-white border-slate-200"
-                } rounded-xl border shadow-sm overflow-hidden animate-fade-in-up hover-lift`}
-              >
-                <div
-                  className={`p-6 border-b ${
-                    isDark
-                      ? "border-slate-700 bg-linear-to-r from-green-900/30 to-green-900/50"
-                      : "border-slate-200 bg-linear-to-r from-green-50 to-green-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <svg
-                      className={`w-6 h-6 ${
-                        isDark ? "text-green-400" : "text-green-600"
-                      }`}
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                    </svg>
-                    <h2
-                      className={`text-2xl font-bold ${
-                        isDark ? "text-white" : "text-slate-900"
-                      }`}
-                    >
-                      Recent Commits
+            <Card className="border border-emerald-200/25 bg-carbon-100/90 shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
+              <CardContent className="p-6">
+                <Flex justify="between" align="center" className="mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold" style={{ color: "#E8F1EE" }}>
+                      Commits
                     </h2>
+                    <p className="text-sm" style={{ color: "#9DBFB7" }}>
+                      {commits.length} total
+                    </p>
                   </div>
-                  <p
-                    className={`${
-                      isDark ? "text-slate-400" : "text-slate-600"
-                    } text-sm`}
-                  >
-                    {Math.min(commits.length, 10)} recent commit
-                    {Math.min(commits.length, 10) !== 1 ? "s" : ""}
-                  </p>
-                </div>
+                  <Badge variant="info">Commits</Badge>
+                </Flex>
 
-                <div
-                  className={`divide-y ${
-                    isDark ? "divide-slate-700" : "divide-slate-200"
-                  } max-h-96 overflow-y-auto`}
-                >
+                <div className="space-y-4 max-h-[520px] overflow-y-auto">
                   {commits.length > 0 ? (
-                    commits.slice(0, 10).map((c) => (
-                      <div
-                        key={c.sha}
-                        className={`p-6 ${
-                          isDark ? "hover:bg-slate-700/50" : "hover:bg-slate-50"
-                        } transition-colors`}
-                      >
-                        <div className="mb-4">
-                          <h3
-                            className={`font-semibold ${
-                              isDark ? "text-white" : "text-slate-900"
-                            } line-clamp-2 mb-2`}
-                          >
-                            {c.commit?.message}
-                          </h3>
-                          <div
-                            className={`flex items-center gap-3 text-sm ${
-                              isDark ? "text-slate-400" : "text-slate-600"
-                            }`}
-                          >
-                            <span>{c.commit?.author?.name}</span>
-                            <span>•</span>
-                            <span>
-                              {new Date(
-                                c.commit?.author?.date
-                              ).toLocaleDateString()}
-                            </span>
-                            <span
-                              className={`font-mono text-xs ${
-                                isDark ? "text-slate-500" : "text-slate-400"
-                              }`}
-                            >
-                              ({c.sha.substring(0, 7)})
-                            </span>
+                    commits.map((commit) => (
+                      <Card key={commit.sha} className="border border-emerald-200/20 bg-carbon-100/70 hover:border-emerald-200/45 transition-colors">
+                        <CardContent className="p-4 space-y-3">
+                          <div>
+                            <h3 className="font-semibold" style={{ color: "#E8F1EE" }}>
+                              {commit.commit?.message?.split("\n")[0] || "Commit"}
+                            </h3>
+                            <p className="text-sm mt-1" style={{ color: "#9DBFB7" }}>
+                              {commit.author?.login || commit.commit?.author?.name} • {new Date(commit.commit?.author?.date).toLocaleDateString()}
+                            </p>
                           </div>
-                        </div>
-                        <button
-                          onClick={() => goCommitDetail(c.sha)}
-                          className={`w-full ${
-                            isDark
-                              ? "bg-linear-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600"
-                              : "bg-linear-to-r from-green-600 to-green-700 hover:shadow-lg"
-                          } text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 hover-lift`}
-                        >
-                          Run AI Review
-                        </button>
-                      </div>
+                          <Flex justify="between" align="center">
+                            <Badge variant="secondary">{commit.sha.substring(0, 7)}</Badge>
+                            <Button size="sm" onClick={() => navigate(`/repos/${owner}/${repo}/commit/${commit.sha}`)}>
+                              Run AI Review
+                            </Button>
+                          </Flex>
+                        </CardContent>
+                      </Card>
                     ))
                   ) : (
-                    <div
-                      className={`p-12 text-center ${
-                        isDark ? "text-slate-400" : "text-slate-600"
-                      }`}
-                    >
-                      <p>No commits</p>
-                    </div>
+                    <p className="text-sm" style={{ color: "#9DBFB7" }}>
+                      No commits found.
+                    </p>
                   )}
                 </div>
-              </section>
-            </div>
-          )}
-        </div>
-      </div>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+      </Container>
     </Layout>
   );
 }

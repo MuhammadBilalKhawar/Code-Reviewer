@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig.js";
 import Layout from "../components/Layout";
-import { useTheme } from "../context/ThemeContext";
+import { Badge, Button, Card, CardContent, Container, Flex, Grid, Select, Spinner } from "../components/ui";
 
 export default function AdvancedTesting() {
   const navigate = useNavigate();
-  const { isDark } = useTheme();
   const [repos, setRepos] = useState([]);
   const [selectedRepo, setSelectedRepo] = useState("");
   const [selectedTests, setSelectedTests] = useState([]);
@@ -14,7 +13,9 @@ export default function AdvancedTesting() {
   const [availableTests, setAvailableTests] = useState([]);
   const [testRunning, setTestRunning] = useState(false);
   const [testHistory, setTestHistory] = useState([]);
-  const [showHistory, setShowHistory] = useState(true);
+  const [showAllHistory, setShowAllHistory] = useState(false);
+  const [currentTest, setCurrentTest] = useState(0);
+  const [totalTests, setTotalTests] = useState(0);
 
   useEffect(() => {
     fetchRepos();
@@ -42,12 +43,61 @@ export default function AdvancedTesting() {
 
   const fetchTestHistory = async () => {
     try {
+      // Get all tests for the user (no owner/repo filter)
       const res = await api.get("/api/testing/history");
       setTestHistory(res.data.tests || res.data || []);
     } catch (err) {
       console.error("Failed to fetch test history", err);
     }
   };
+
+  const testDetails = {
+    'dynamic-eslint': {
+      name: 'ESLint Analysis',
+      description: 'AI-powered syntax and style checking',
+      features: ['Detects syntax errors', 'Finds unused variables', 'Enforces code style', 'Identifies anti-patterns']
+    },
+    'dynamic-prettier': {
+      name: 'Prettier Formatting',
+      description: 'Automated code formatting analysis',
+      features: ['Checks formatting consistency', 'Detects indentation issues', 'Validates line length', 'Ensures code readability']
+    },
+    'dynamic-jest': {
+      name: 'Jest Test Generation',
+      description: 'AI generates and analyzes test coverage',
+      features: ['Generates unit tests', 'Analyzes test coverage', 'Suggests edge cases', 'Validates test quality']
+    },
+    'dynamic-security': {
+      name: 'Security Scan',
+      description: 'Comprehensive security vulnerability detection',
+      features: ['Finds hardcoded credentials', 'Detects SQL injection', 'Identifies XSS vulnerabilities', 'Checks insecure dependencies']
+    },
+    'dynamic-performance': {
+      name: 'Performance Analysis',
+      description: 'Code efficiency and optimization',
+      features: ['Finds inefficient algorithms', 'Detects memory leaks', 'Identifies bottlenecks', 'Suggests optimizations']
+    },
+    'dynamic-accessibility': {
+      name: 'Accessibility Check',
+      description: 'WCAG compliance validation',
+      features: ['Validates ARIA labels', 'Checks keyboard navigation', 'Ensures color contrast', 'Verifies screen reader support']
+    }
+  };
+
+  const tests = useMemo(
+    () =>
+      availableTests.map((t) => {
+        const testId = typeof t === "string" ? t : (t.id || t.type || t.name);
+        const details = testDetails[testId] || {};
+        return {
+          id: testId,
+          name: details.name || testId,
+          description: details.description || '',
+          features: details.features || []
+        };
+      }),
+    [availableTests]
+  );
 
   const toggleTest = (testId) => {
     setSelectedTests((prev) =>
@@ -56,435 +106,230 @@ export default function AdvancedTesting() {
   };
 
   const handleRunTests = async () => {
-    if (!selectedRepo) {
-      alert("Please select a repository");
-      return;
-    }
-
-    if (selectedTests.length === 0) {
-      alert("Please select at least one test");
-      return;
-    }
+    if (!selectedRepo || selectedTests.length === 0) return;
 
     try {
       setTestRunning(true);
       const [owner, repo] = selectedRepo.split("/");
 
-      let response;
-
       if (selectedTests.length === 1) {
-        // Single test
+        // Single test - navigate directly to result
         const testType = selectedTests[0];
-        const endpoints = {
-          eslint: "/api/testing/eslint",
-          stylelint: "/api/testing/stylelint",
-          htmlhint: "/api/testing/htmlhint",
-          prettier: "/api/testing/prettier",
-          markdownlint: "/api/testing/markdownlint",
-          "npm-audit": "/api/testing/npm-audit",
-          depcheck: "/api/testing/depcheck",
-        };
-
-        const endpoint = endpoints[testType];
-        if (!endpoint) {
-          throw new Error("Unsupported test type");
-        }
-
-        response = await api.post(endpoint, { owner, repo });
+        const response = await api.post("/api/testing/dynamic", { owner, repo, testType });
+        const testId = response.data.testing?._id || response.data.testId;
+        
+        if (!testId) throw new Error("No test ID returned from server");
+        
+        navigate(`/advanced-testing-results/${owner}/${repo}/${testId}`);
       } else {
-        // Multiple tests
-        response = await api.post("/api/testing/multiple", {
-          owner,
-          repo,
-          testTypes: selectedTests,
-        });
+        // Multiple tests - run all and show progress
+        const testResults = [];
+        setTotalTests(selectedTests.length);
+        
+        for (let i = 0; i < selectedTests.length; i++) {
+          const testType = selectedTests[i];
+          setCurrentTest(i + 1);
+          
+          try {
+            console.log(`Running test ${i + 1}/${selectedTests.length}: ${testType}`);
+            const res = await api.post("/api/testing/dynamic", { owner, repo, testType });
+            testResults.push({
+              testType,
+              success: true,
+              data: res.data
+            });
+          } catch (err) {
+            console.error(`Failed to run ${testType}:`, err);
+            testResults.push({
+              testType,
+              success: false,
+              error: err.message
+            });
+          }
+        }
+        
+        // Show success message with all test results
+        const successCount = testResults.filter(r => r.success).length;
+        const failCount = testResults.length - successCount;
+        
+        const message = `✅ Completed ${successCount}/${testResults.length} tests successfully${failCount > 0 ? `\n❌ ${failCount} failed` : ''}`;
+        alert(message);
+        
+        // Refresh history to show all new results
+        fetchTestHistory();
+        
+        // Navigate to results page with all test IDs
+        const testIds = testResults
+          .filter(r => r.success)
+          .map(r => r.data.testing?._id || r.data.testId)
+          .filter(id => id);
+        
+        if (testIds.length > 0) {
+          // Pass all test IDs as comma-separated string
+          navigate(`/advanced-testing-results/${owner}/${repo}/${testIds.join(',')}`);
+        }
       }
-
-      // Check if response exists and has data
-      if (!response || !response.data) {
-        throw new Error("Invalid response from server");
-      }
-
-      // Navigate to advanced testing results
-      const testId = response.data.testing?._id || response.data.testId;
-      if (!testId) {
-        throw new Error("No test ID returned from server");
-      }
-
-      navigate(`/advanced-testing-results/${owner}/${repo}/${testId}`);
     } catch (err) {
       console.error("Failed to run tests", err);
       alert("Failed to run tests. " + (err.response?.data?.message || err.message));
+    } finally {
       setTestRunning(false);
+      setCurrentTest(0);
+      setTotalTests(0);
     }
   };
 
   return (
     <Layout>
-      <div
-        className={`min-h-screen p-8 ${isDark ? "bg-slate-900" : "bg-slate-50"}`}
-      >
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-12">
-            <button
-              onClick={() => navigate(-1)}
-              className={`flex items-center gap-2 ${
-                isDark
-                  ? "text-purple-400 hover:text-purple-300"
-                  : "text-purple-600 hover:text-purple-700"
-              } font-semibold mb-4`}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-              Back
-            </button>
-            <h1
-              className={`text-4xl font-bold ${
-                isDark ? "text-white" : "text-slate-900"
-              } mb-2`}
-            >
-              🧪 Advanced Testing Dashboard
+      <Container className="py-12">
+        <Flex justify="between" align="center" className="mb-10">
+          <div>
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              ← Back
+            </Button>
+            <h1 className="text-4xl font-bold mt-4" style={{ color: "#E8F1EE" }}>
+              Advanced Testing
             </h1>
-            <p className={`${isDark ? "text-slate-400" : "text-slate-600"}`}>
-              Select a repository and choose which tests to run
+            <p className="mt-2" style={{ color: "#9DBFB7" }}>
+              Select a repository and run targeted quality checks
             </p>
           </div>
+          <Button
+            variant="accent"
+            onClick={handleRunTests}
+            disabled={testRunning || !selectedRepo || selectedTests.length === 0}
+          >
+            {testRunning 
+              ? (totalTests > 1 ? `Running ${currentTest}/${totalTests} tests...` : "Running...") 
+              : `Run Selected Tests${selectedTests.length > 1 ? ` (${selectedTests.length})` : ''}`
+            }
+          </Button>
+        </Flex>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Sidebar - Configuration */}
-            <div
-              className={`lg:col-span-1 ${
-                isDark ? "bg-slate-800" : "bg-white"
-              } rounded-xl shadow-lg p-6 border ${
-                isDark ? "border-slate-700" : "border-slate-200"
-              } h-fit`}
-            >
-              <h2
-                className={`text-xl font-bold ${
-                  isDark ? "text-white" : "text-slate-900"
-                } mb-6`}
-              >
-                Test Configuration
+        {/* Repository Selection and Test Options */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          {/* Repository Selection */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4" style={{ color: "#E8F1EE" }}>
+                Repository Selection
               </h2>
+              <Select
+                label="Select Repository"
+                value={selectedRepo}
+                onChange={(e) => setSelectedRepo(e.target.value)}
+                options={repos.map((repo) => ({
+                  value: `${repo.owner.login}/${repo.name}`,
+                  label: `${repo.owner.login}/${repo.name}`,
+                }))}
+              />
+            </CardContent>
+          </Card>
 
-              {/* Repository Selection */}
-              <div className="mb-8">
-                <label
-                  className={`block font-semibold ${
-                    isDark ? "text-slate-300" : "text-slate-700"
-                  } mb-3`}
-                >
-                  📁 Select Repository
-                </label>
-                <select
-                  value={selectedRepo}
-                  onChange={(e) => setSelectedRepo(e.target.value)}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark
-                      ? "bg-slate-700 border-slate-600 text-white"
-                      : "bg-white border-slate-300 text-slate-900"
-                  } focus:outline-none focus:ring-2 focus:ring-purple-500`}
-                >
-                  <option value="">Choose a repository...</option>
-                  {repos.map((repo) => (
-                    <option
-                      key={repo.id}
-                      value={`${repo.owner.login}/${repo.name}`}
-                    >
-                      {repo.owner.login}/{repo.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Run Button */}
-              <button
-                onClick={handleRunTests}
-                disabled={testRunning || !selectedRepo || selectedTests.length === 0}
-                className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
-                  testRunning || !selectedRepo || selectedTests.length === 0
-                    ? "bg-slate-500 cursor-not-allowed opacity-50"
-                    : isDark
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl"
-                    : "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl"
-                }`}
-              >
-                {testRunning ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Running Tests...
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    Run Selected Tests
-                  </>
-                )}
-              </button>
-
-              {selectedTests.length > 0 && (
-                <div
-                  className={`mt-4 p-3 rounded-lg ${
-                    isDark ? "bg-blue-500/10" : "bg-blue-50"
-                  } border ${isDark ? "border-blue-500/30" : "border-blue-200"}`}
-                >
-                  <p
-                    className={`text-sm font-semibold ${
-                      isDark ? "text-blue-400" : "text-blue-700"
-                    }`}
-                  >
-                    ✓ {selectedTests.length} test(s) selected
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Right Content - Test Selection */}
-            <div className="lg:col-span-2">
-              <h2
-                className={`text-xl font-bold ${
-                  isDark ? "text-white" : "text-slate-900"
-                } mb-6`}
-              >
-                Available Tests
+          {/* Test Selection */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4" style={{ color: "#E8F1EE" }}>
+                Testing Options
               </h2>
-
-              <div className="space-y-4">
-                {availableTests.map((test) => (
-                  <div
-                    key={test.id}
-                    onClick={() => !test.status?.includes("coming") && toggleTest(test.id)}
-                    className={`p-6 rounded-xl border-2 transition-all cursor-pointer ${
-                      selectedTests.includes(test.id)
-                        ? isDark
-                          ? "border-purple-500 bg-purple-500/10"
-                          : "border-purple-400 bg-purple-50"
-                        : isDark
-                        ? "border-slate-700 bg-slate-800 hover:border-slate-600"
-                        : "border-slate-200 bg-white hover:border-slate-300"
-                    } ${test.status?.includes("coming") ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <div className="flex items-start gap-4">
-                      {/* Checkbox */}
-                      <div className="flex-shrink-0 pt-1">
-                        <input
-                          type="checkbox"
-                          checked={selectedTests.includes(test.id)}
-                          onChange={() => toggleTest(test.id)}
-                          disabled={test.status?.includes("coming")}
-                          className="w-5 h-5 rounded cursor-pointer"
-                        />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-2xl">{test.icon}</span>
-                          <h3
-                            className={`text-lg font-bold ${
-                              isDark ? "text-white" : "text-slate-900"
-                            }`}
-                          >
-                            {test.name}
-                          </h3>
-                          {test.status?.includes("coming") && (
-                            <span className="text-xs font-bold px-2 py-1 rounded bg-yellow-500/20 text-yellow-600">
-                              Coming Soon
-                            </span>
-                          )}
-                        </div>
-
-                        <p
-                          className={`text-sm mb-4 ${
-                            isDark ? "text-slate-400" : "text-slate-600"
-                          }`}
-                        >
-                          {test.description}
-                        </p>
-
-                        {/* Features */}
-                        <div className="grid grid-cols-2 gap-2">
+              <p className="text-sm mb-4" style={{ color: "#C47A3A" }}>
+                Select tests to run (AI-powered analysis)
+              </p>
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {tests.map((test) => (
+                  <label key={test.id} className="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedTests.includes(test.id)}
+                      onChange={() => toggleTest(test.id)}
+                      className="mt-1 accent-copper"
+                    />
+                    <div className="flex-1">
+                      <span className="block font-semibold" style={{ color: "#E8F1EE" }}>{test.name}</span>
+                      {test.description && (
+                        <span className="block text-sm mt-1" style={{ color: "#9DBFB7" }}>{test.description}</span>
+                      )}
+                      {test.features && test.features.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
                           {test.features.map((feature, idx) => (
-                            <div
-                              key={idx}
-                              className={`text-xs px-2 py-1 rounded-lg ${
-                                isDark
-                                  ? "bg-slate-700 text-slate-300"
-                                  : "bg-slate-100 text-slate-700"
-                              }`}
-                            >
-                              ✓ {feature}
-                            </div>
+                            <Badge key={idx} variant="secondary" className="text-xs">
+                              {feature}
+                            </Badge>
                           ))}
-                        </div>
-                      </div>
-
-                      {/* Test Badge */}
-                      {selectedTests.includes(test.id) && (
-                        <div className="flex-shrink-0">
-                          <div className="text-2xl">✅</div>
                         </div>
                       )}
                     </div>
-                  </div>
+                  </label>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        </div>
 
-              {/* Info Box */}
-              <div
-                className={`mt-8 p-6 rounded-xl border ${
-                  isDark
-                    ? "bg-blue-500/10 border-blue-500/30"
-                    : "bg-blue-50 border-blue-200"
-                }`}
-              >
-                <h3
-                  className={`font-bold mb-2 ${
-                    isDark ? "text-blue-400" : "text-blue-700"
-                  }`}
-                >
-                  💡 How it Works
-                </h3>
-                <ul
-                  className={`text-sm space-y-1 ${
-                    isDark ? "text-slate-300" : "text-slate-700"
-                  }`}
-                >
-                  <li>• Select a repository from your GitHub account</li>
-                  <li>• Choose one or more testing tools</li>
-                  <li>• Click "Run Selected Tests" to analyze</li>
-                  <li>• View comprehensive results and recommendations</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Test History Section */}
-          {testHistory.length > 0 && (
-            <div className="mt-12">
-              <div className="flex items-center justify-between mb-6">
-                <h2
-                  className={`text-2xl font-bold ${
-                    isDark ? "text-white" : "text-slate-900"
-                  }`}
-                >
-                  📋 Recent Test Results
-                </h2>
-                <button
-                  onClick={() => setShowHistory(!showHistory)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold ${
-                    isDark
-                      ? "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                      : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-                  }`}
-                >
-                  {showHistory ? "Hide" : "Show"} History
-                </button>
-              </div>
-
-              {showHistory && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {testHistory.slice(0, 9).map((test) => (
-                    <div
-                      key={test._id}
-                      className={`p-5 rounded-xl border ${
-                        isDark
-                          ? "bg-slate-800 border-slate-700"
-                          : "bg-white border-slate-200"
-                      } shadow-lg hover:shadow-xl transition-all`}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3
-                            className={`font-bold ${
-                              isDark ? "text-white" : "text-slate-900"
-                            }`}
+        {/* Test History */}
+        <Card>
+          <CardContent className="p-6">
+            <Flex justify="between" align="center" className="mb-6">
+              <h2 className="text-xl font-bold" style={{ color: "#E8F1EE" }}>
+                Recent Test History
+              </h2>
+            </Flex>
+            {loading ? (
+              <Flex direction="col" align="center" className="py-10">
+                <Spinner size="lg" />
+                <p className="mt-3" style={{ color: "#9DBFB7" }}>Loading history...</p>
+              </Flex>
+            ) : testHistory.length > 0 ? (
+              <>
+                <div className="space-y-3">
+                  {(showAllHistory ? testHistory : testHistory.slice(0, 3)).map((test) => (
+                    <Card key={test._id || test.id} className="border border-copper/15">
+                      <CardContent className="p-4">
+                        <Flex justify="between" align="center">
+                          <div>
+                            <p className="font-semibold" style={{ color: "#E8F1EE" }}>
+                              {test.owner}/{test.repo}
+                            </p>
+                            <Flex gap={2} align="center" className="mt-1">
+                              <Badge variant={test.status === 'COMPLETED' ? 'success' : test.status === 'ERROR' ? 'danger' : 'default'}>
+                                {test.status || 'COMPLETED'}
+                              </Badge>
+                              <span className="text-sm" style={{ color: "#9DBFB7" }}>
+                                {test.testType || 'Unknown Test'}
+                              </span>
+                              <span className="text-sm" style={{ color: "#9DBFB7" }}>
+                                • {new Date(test.createdAt || test.timestamp || Date.now()).toLocaleString()}
+                              </span>
+                            </Flex>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => navigate(`/advanced-testing-results/${test.owner}/${test.repo}/${test._id}`)}
                           >
-                            {test.owner}/{test.repo}
-                          </h3>
-                          <p
-                            className={`text-xs ${
-                              isDark ? "text-slate-500" : "text-slate-500"
-                            }`}
-                          >
-                            {new Date(test.createdAt).toLocaleDateString()} at{" "}
-                            {new Date(test.createdAt).toLocaleTimeString()}
-                          </p>
-                        </div>
-                        <div
-                          className={`px-3 py-1 rounded-full text-sm font-bold ${
-                            test.overallScore >= 80
-                              ? "bg-green-500/20 text-green-500"
-                              : test.overallScore >= 60
-                              ? "bg-yellow-500/20 text-yellow-500"
-                              : "bg-red-500/20 text-red-500"
-                          }`}
-                        >
-                          {test.overallScore}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {test.testType?.split(",").map((type, idx) => (
-                          <span
-                            key={idx}
-                            className={`text-xs px-2 py-1 rounded ${
-                              isDark
-                                ? "bg-slate-700 text-slate-300"
-                                : "bg-slate-100 text-slate-600"
-                            }`}
-                          >
-                            {type.trim()}
-                          </span>
-                        ))}
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          navigate(
-                            `/advanced-testing-results/${test.owner}/${test.repo}/${test._id}`
-                          )
-                        }
-                        className={`w-full py-2 rounded-lg font-semibold text-sm transition-all ${
-                          isDark
-                            ? "bg-purple-600 hover:bg-purple-700 text-white"
-                            : "bg-purple-500 hover:bg-purple-600 text-white"
-                        }`}
-                      >
-                        View Results →
-                      </button>
-                    </div>
+                            View Results
+                          </Button>
+                        </Flex>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+                {testHistory.length > 3 && (
+                  <Flex justify="center" className="mt-4">
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => setShowAllHistory(!showAllHistory)}
+                    >
+                      {showAllHistory ? "Show Less" : `Show More (${testHistory.length - 3} more)`}
+                    </Button>
+                  </Flex>
+                )}
+              </>
+            ) : (
+              <p style={{ color: "#9DBFB7" }}>No tests have been run yet.</p>
+            )}
+          </CardContent>
+        </Card>
+      </Container>
     </Layout>
   );
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig.js";
 import { useTheme } from "../context/ThemeContext";
+import AnimatedBackground from "./AnimatedBackground";
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -51,23 +52,28 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className={`flex h-screen ${isDark ? "bg-slate-900" : "bg-slate-50"}`}>
+    <div
+      className={`relative flex min-h-screen ${
+        isDark ? "bg-carbon" : "bg-slate-50"
+      }`}
+    >
+      {isDark && <AnimatedBackground />}
       {/* Sidebar */}
       <aside
-        className={`w-64 ${
-          isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"
+        className={`relative z-10 w-64 ${
+          isDark ? "bg-carbon-50 border-carbon-100" : "bg-white border-slate-200"
         } border-r flex flex-col shadow-sm transition-colors`}
       >
         {/* Brand */}
         <div
           className={`p-6 border-b ${
-            isDark ? "border-slate-700" : "border-slate-200"
+            isDark ? "border-carbon-100" : "border-slate-200"
           }`}
         >
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-linear-to-br from-purple-600 to-indigo-600 rounded-lg">
+            <div className={`p-2 rounded-lg ${isDark ? "bg-copper" : "bg-linear-to-br from-purple-600 to-indigo-600"}`}>
               <svg
-                className="w-5 h-5 text-white"
+                className={`w-5 h-5 ${isDark ? "text-carbon" : "text-white"}`}
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
@@ -77,17 +83,17 @@ export default function Layout({ children }) {
             <div>
               <h1
                 className={`text-xl font-bold ${
-                  isDark ? "text-white" : "text-slate-900"
+                  isDark ? "text-neon-text" : "text-slate-900"
                 }`}
               >
                 CodeReview
               </h1>
               <p
                 className={`text-xs ${
-                  isDark ? "text-slate-400" : "text-slate-500"
+                  isDark ? "text-neon-muted" : "text-slate-500"
                 }`}
               >
-                AI Assistant
+                Premium Edition
               </p>
             </div>
           </div>
@@ -101,12 +107,12 @@ export default function Layout({ children }) {
               isActive("/dashboard")
                 ? `${
                     isDark
-                      ? "bg-purple-900/40 text-purple-400"
-                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700"
-                  } border-l-4 border-purple-600`
+                      ? "bg-lime/20 text-lime border-l-4 border-lime"
+                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700 border-l-4 border-purple-600"
+                  }`
                 : `${
                     isDark
-                      ? "text-slate-400 hover:bg-slate-700/50"
+                      ? "text-neon-muted hover:bg-carbon-300 hover:text-neon-text"
                       : "text-slate-600 hover:bg-slate-100"
                   }`
             }`}
@@ -123,12 +129,12 @@ export default function Layout({ children }) {
               isActive("/repositories")
                 ? `${
                     isDark
-                      ? "bg-purple-900/40 text-purple-400"
-                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700"
-                  } border-l-4 border-purple-600`
+                      ? "bg-lime/20 text-lime border-l-4 border-lime"
+                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700 border-l-4 border-purple-600"
+                  }`
                 : `${
                     isDark
-                      ? "text-slate-400 hover:bg-slate-700/50"
+                      ? "text-neon-muted hover:bg-carbon-300 hover:text-neon-text"
                       : "text-slate-600 hover:bg-slate-100"
                   }`
             }`}
@@ -145,12 +151,12 @@ export default function Layout({ children }) {
               isActive("/advanced-testing") || location.pathname.startsWith("/advanced-testing")
                 ? `${
                     isDark
-                      ? "bg-purple-900/40 text-purple-400"
-                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700"
-                  } border-l-4 border-purple-600`
+                      ? "bg-lime/20 text-lime border-l-4 border-lime"
+                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700 border-l-4 border-purple-600"
+                  }`
                 : `${
                     isDark
-                      ? "text-slate-400 hover:bg-slate-700/50"
+                      ? "text-neon-muted hover:bg-carbon-300 hover:text-neon-text"
                       : "text-slate-600 hover:bg-slate-100"
                   }`
             }`}
@@ -167,12 +173,12 @@ export default function Layout({ children }) {
               isActive("/documentation")
                 ? `${
                     isDark
-                      ? "bg-purple-900/40 text-purple-400"
-                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700"
-                  } border-l-4 border-purple-600`
+                      ? "bg-lime/20 text-lime border-l-4 border-lime"
+                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700 border-l-4 border-purple-600"
+                  }`
                 : `${
                     isDark
-                      ? "text-slate-400 hover:bg-slate-700/50"
+                      ? "text-neon-muted hover:bg-carbon-300 hover:text-neon-text"
                       : "text-slate-600 hover:bg-slate-100"
                   }`
             }`}
@@ -189,12 +195,12 @@ export default function Layout({ children }) {
               isActive("/settings")
                 ? `${
                     isDark
-                      ? "bg-purple-900/40 text-purple-400"
-                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700"
-                  } border-l-4 border-purple-600`
+                      ? "bg-lime/20 text-lime border-l-4 border-lime"
+                      : "bg-linear-to-r from-purple-50 to-indigo-50 text-purple-700 border-l-4 border-purple-600"
+                  }`
                 : `${
                     isDark
-                      ? "text-slate-400 hover:bg-slate-700/50"
+                      ? "text-neon-muted hover:bg-carbon-300 hover:text-neon-text"
                       : "text-slate-600 hover:bg-slate-100"
                   }`
             }`}
@@ -210,7 +216,7 @@ export default function Layout({ children }) {
         <div
           className={`p-4 border-t ${
             isDark
-              ? "border-slate-700 text-slate-500"
+              ? "border-carbon-300 text-neon-muted"
               : "border-slate-200 text-slate-500"
           } text-center text-xs`}
         >
@@ -224,18 +230,18 @@ export default function Layout({ children }) {
         <header
           className={`h-16 ${
             isDark
-              ? "bg-slate-800 border-slate-700"
+              ? "bg-carbon-200 border-carbon-300"
               : "bg-white border-slate-200"
           } border-b flex items-center justify-between px-6 shadow-sm transition-colors`}
         >
           <button
             className={`p-2 ${
-              isDark ? "hover:bg-slate-700" : "hover:bg-slate-100"
+              isDark ? "hover:bg-carbon-300" : "hover:bg-slate-100"
             } rounded-lg transition-colors lg:hidden`}
           >
             <svg
               className={`w-6 h-6 ${
-                isDark ? "text-slate-400" : "text-slate-600"
+                isDark ? "text-neon-muted" : "text-slate-600"
               }`}
               viewBox="0 0 24 24"
               fill="currentColor"
@@ -247,7 +253,7 @@ export default function Layout({ children }) {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-linear-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center">
+                <div className={`w-10 h-10 ${isDark ? "bg-lime" : "bg-linear-to-br from-purple-600 to-indigo-600"} rounded-full flex items-center justify-center`}>
                   {user?.avatar ? (
                     <img
                       src={user.avatar}
@@ -255,7 +261,7 @@ export default function Layout({ children }) {
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    <span className="text-white text-sm font-bold">
+                    <span className={`text-sm font-bold ${isDark ? "text-carbon" : "text-white"}`}>
                       {getInitials(user?.name)}
                     </span>
                   )}
@@ -263,14 +269,14 @@ export default function Layout({ children }) {
                 <div className="hidden sm:block">
                   <div
                     className={`text-sm font-semibold ${
-                      isDark ? "text-white" : "text-slate-900"
+                      isDark ? "text-neon-text" : "text-slate-900"
                     }`}
                   >
                     {user?.name || "Loading..."}
                   </div>
                   <div
                     className={`text-xs ${
-                      isDark ? "text-slate-400" : "text-slate-500"
+                      isDark ? "text-neon-muted" : "text-slate-500"
                     }`}
                   >
                     {user?.email || ""}
@@ -282,7 +288,7 @@ export default function Layout({ children }) {
               onClick={handleLogout}
               className={`p-2 ${
                 isDark
-                  ? "text-slate-400 hover:bg-red-900/30 hover:text-red-400"
+                  ? "text-neon-muted hover:bg-neon-error/20 hover:text-neon-error"
                   : "text-slate-600 hover:bg-red-50 hover:text-red-600"
               } rounded-lg transition-colors`}
               title="Logout"
@@ -296,8 +302,8 @@ export default function Layout({ children }) {
 
         {/* Page Content */}
         <main
-          className={`flex-1 overflow-auto ${
-            isDark ? "bg-slate-900" : "bg-slate-50"
+          className={`relative z-10 flex-1 overflow-auto ${
+            isDark ? "bg-transparent" : "bg-slate-50"
           } transition-colors`}
         >
           {children}

@@ -1,68 +1,40 @@
 import express from "express";
 import { auth } from "../middleware/auth.js";
 import {
-  createTestRun,
-  getTestResult,
-  listTestRuns,
-  getTestingStats,
-  deleteTestResult,
-} from "../controllers/testingController.js";
-import {
-  runESLintTest,
-  runStylelintTest,
-  runHTMLHintTest,
-  runPrettierTest,
-  runMarkdownlintTest,
-  runNpmAuditTest,
-  runDepcheckTest,
-  runMultipleTests,
+  runDynamicAITest,
   listAvailableTests,
+  getAllTests,
+  getTestStats,
+  getTestById,
+  deleteTest,
+  getTestHistory,
+  commitTestWorkflow,
 } from "../controllers/advancedTestingController.js";
 
 const router = express.Router();
 
-// Available tests list
+// List available AI-powered tests
 router.get("/available", auth, listAvailableTests);
 
-// Run ESLint test (JavaScript/React Quality)
-router.post("/eslint", auth, runESLintTest);
+// Run dynamic AI test (local execution)
+router.post("/dynamic", auth, runDynamicAITest);
 
-// Run Stylelint test (CSS Quality)
-router.post("/stylelint", auth, runStylelintTest);
+// Commit approved workflow to GitHub
+router.post("/commit-workflow", auth, commitTestWorkflow);
 
-// Run HTMLHint test (HTML Validation)
-router.post("/htmlhint", auth, runHTMLHintTest);
+// Get testing statistics
+router.get("/stats", auth, getTestStats);
 
-// Run Prettier test (Formatting)
-router.post("/prettier", auth, runPrettierTest);
+// Get test history
+router.get("/history", auth, getTestHistory);
 
-// Run Markdownlint test (Docs)
-router.post("/markdownlint", auth, runMarkdownlintTest);
-
-// Run npm audit test (Dependencies)
-router.post("/npm-audit", auth, runNpmAuditTest);
-
-// Run depcheck test (Dependencies)
-router.post("/depcheck", auth, runDepcheckTest);
-
-// Run multiple tests
-router.post("/multiple", auth, runMultipleTests);
-
-// Custom testing (original)
-router.post("/", auth, createTestRun);
-
-// Testing statistics
-router.get("/stats", auth, getTestingStats);
-
-// List all test runs (history)
-router.get("/history", auth, listTestRuns);
-router.get("/list", auth, listTestRuns);
+// List all test runs
+router.get("/", auth, getAllTests);
 
 // Get single test result
-router.get("/:id", auth, getTestResult);
+router.get("/:id", auth, getTestById);
 
 // Delete test result
-router.delete("/:id", auth, deleteTestResult);
+router.delete("/:id", auth, deleteTest);
 
 export default router;
-

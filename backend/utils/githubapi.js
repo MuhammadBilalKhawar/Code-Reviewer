@@ -1,5 +1,8 @@
 import axios from "axios";
 
+/**
+ * GitHub API wrapper - makes authenticated requests to GitHub
+ */
 export const githubApi = async (token, endpoint) => {
   const { data } = await axios.get(`https://api.github.com${endpoint}`, {
     headers: { Authorization: `token ${token}` },
@@ -7,7 +10,10 @@ export const githubApi = async (token, endpoint) => {
   return data;
 };
 
-// Get repository contents (files and directories) - recursively
+/**
+ * Get repository contents recursively
+ * Fetches files and directories, excluding node_modules and hidden directories
+ */
 githubApi.getRepoContents = async (owner, repo, path = '', token, allFiles = []) => {
   try {
     const { data } = await axios.get(
